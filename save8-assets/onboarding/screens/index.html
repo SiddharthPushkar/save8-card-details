@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F7F4ED;--card:#fff;--ink:#0E0F0C;--body:#454745;--muted:#6A6C6A;--line:rgba(14,15,12,.10);--green:#007A45;--gbg:rgba(0,122,69,.08);--orange:#E6651A;--chip:#D9E8FA;--chipink:#0F2D6F;--photo:#F4F4F6}
+.dark{--bg:#0B0C0A;--card:#161814;--ink:#F6F4EE;--body:#C4C1B8;--muted:#A3A097;--line:rgba(246,244,238,.10);--green:#43D895;--gbg:rgba(67,216,149,.11);--orange:#F08A4B;--chip:#2B3550;--chipink:#C7D2FE;--photo:#20221D}
+*{box-sizing:border-box;margin:0}body{width:390px;height:844px;background:var(--bg);font-family:Inter,sans-serif;color:var(--ink);overflow:hidden}
+.sb{height:54px}.hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 12px}
+.ib{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-size:18px;color:var(--ink)}
+.logo{height:26px}.dark .logo{filter:brightness(1.05)}
+.wrap{padding:0 16px;display:flex;flex-direction:column;gap:14px}
+.pay{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:var(--bg);border-radius:20px;padding:16px}
+.pay .k{font-size:13px;opacity:.75}.pay .v{font-size:26px;font-weight:800}.pill{background:var(--green);color:#fff;font-weight:700;font-size:13px;padding:6px 10px;border-radius:999px}.dark .pill{color:#06261A}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px}
+.prod{display:flex;gap:12px;align-items:center}.ph{width:76px;height:76px;border-radius:14px;background:var(--photo);display:grid;place-items:center;overflow:hidden}
+.ph img{width:68px;mix-blend-mode:multiply}.dark .ph img{mix-blend-mode:normal;border-radius:10px}
+.pn{font-weight:600;font-size:15px;line-height:20px}.chips{display:flex;gap:6px;margin-top:6px}
+.chip{background:var(--chip);color:var(--chipink);font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px}
+.best{background:var(--gbg);border:1px solid rgba(0,122,69,.25)}.dark .best{border-color:rgba(67,216,149,.3)}
+.lbl{font-size:12px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:6px}
+.row{display:flex;align-items:center;gap:10px}.sl{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;overflow:hidden}.sl img{width:100%;height:100%}
+.price{font-size:28px;font-weight:800;letter-spacing:-.5px}.strike{font-size:13px;color:var(--muted);text-decoration:line-through}
+.save{font-size:13px;color:var(--green);font-weight:600}
+.btn{margin-top:10px;background:var(--orange);color:#fff;border-radius:999px;height:44px;display:grid;place-items:center;font-weight:700;font-size:15px}
+.dark .btn{color:#1C0D03}
+.offer{display:flex;align-items:center;gap:10px}.offer .t{flex:1;font-size:13px;color:var(--body)}.offer b{color:var(--ink);font-weight:600}
+.amt{color:var(--green);font-weight:700;font-size:15px}
+.h{font-size:14px;font-weight:600;color:var(--body);margin:2px 2px 0}
+.list .it{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.list .it:first-child{border-top:0;padding-top:0}
+.it .n{flex:1;font-size:14px;font-weight:500}.it .p{font-weight:700;font-size:15px}
+</style></head><body class="THEME">
+<div class="sb"></div>
+<div class="hdr"><div class="ib">‹</div><img class="logo" src="save8-wordmark.png"><div class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></div></div>
+<div class="wrap">
+ <div class="card prod"><div class="ph"><img src="sony-wh-1000xm5-black.jpg"></div>
+  <div><div class="pn">Sony WH-1000XM5 Wireless Noise Cancelling</div><div class="chips"><span class="chip">Black</span><span class="chip">Wireless</span></div></div></div>
+ <div class="card best">
+  <div class="lbl">● Lowest price found</div>
+  <div class="row" style="margin-top:8px"><div class="sl"><img src="croma.png"></div>
+   <div><div style="font-size:13px;color:var(--body);font-weight:500">Croma</div><div class="price">₹24,990</div></div></div>
+  <div style="display:flex;gap:8px;align-items:center;margin-top:2px"><span class="strike">₹29,990 on Amazon</span><span class="save">You save ₹5,000</span></div>
+  <div class="btn">Open Croma ↗</div></div>
+ <div class="card offer"><div class="sl"><img src="hdfc.png"></div><div class="t"><b>HDFC card offer</b><br>5% off at checkout</div><div class="amt">−₹1,250</div></div>
+ <div class="h">Also found on</div>
+ <div class="card list">
+  <div class="it"><div class="sl"><img src="flipkart.png"></div><div class="n">Flipkart</div><div class="p">₹26,499</div></div>
+  <div class="it"><div class="sl"><img src="reliancedigital.png"></div><div class="n">Reliance Digital</div><div class="p">₹27,990</div></div>
+  <div class="it"><div class="sl"><img src="amazon.png"></div><div class="n">Amazon</div><div class="p">₹29,990</div></div>
+ </div>
+ <div class="pay"><div><div class="k">You pay with HDFC card</div><div class="v">₹23,740</div></div><div class="pill">Saved ₹6,250</div></div>
+</div></body></html>

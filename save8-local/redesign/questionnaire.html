@@ -1,0 +1,462 @@
+<title>Product Card Questionnaire</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#F7F4ED; --surface:#fff; --ink:#0E0F0C; --body:#454745; --muted:#6A6C6A;
+  --green:#007A45; --orange:#E6651A; --chip:#D9E8FA; --chip-ink:#0F2D6F; --well:#F5F5F7;
+  --line:rgba(14,15,12,.10); --line-soft:rgba(14,15,12,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--page);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---------- page shell ---------- */
+.top{max-width:1180px;margin:0 auto;padding-block:36px 8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:30px;line-height:38px;font-weight:700;margin:6px 0 8px;letter-spacing:-.01em}
+.lede{font-size:15px;line-height:22px;color:var(--body);max-width:620px}
+.layout{max-width:1180px;margin:0 auto;padding-block:20px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:440px minmax(0,1fr);gap:40px;align-items:start}
+.phone-col{position:sticky;top:16px}
+.phone-fit{transform-origin:top left}
+.picks{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.pick-chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-weight:600;color:var(--ink)}
+
+/* ---------- option groups ---------- */
+.group{margin-bottom:44px;scroll-margin-top:16px}
+.group-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:6px}
+.step{flex:none;width:28px;height:28px;border-radius:999px;background:var(--ink);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+.group h2{font-size:20px;line-height:28px;font-weight:700}
+.group p.q{font-size:14px;line-height:20px;color:var(--muted);margin:2px 0 16px 40px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:14px}
+.opt{position:relative;text-align:left;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px 10px 14px;transition:box-shadow .15s,border-color .15s;display:flex;flex-direction:column;gap:10px}
+.opt:hover{box-shadow:0 6px 20px -10px rgba(14,15,12,.35)}
+.opt[aria-checked="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.opt:focus-visible{outline:2px solid var(--chip-ink);outline-offset:2px}
+.pv-wrap{background:var(--page);border-radius:14px;overflow:hidden;position:relative;pointer-events:none}
+.pv{transform-origin:top left;position:absolute;left:12px;top:12px}
+.opt-label{display:flex;align-items:center;gap:8px;padding:0 4px}
+.letter{width:22px;height:22px;border-radius:7px;background:var(--chip);color:var(--chip-ink);font-size:12px;font-weight:700;display:grid;place-items:center}
+.opt-name{font-weight:600;font-size:14px}
+.opt-desc{font-size:12.5px;line-height:18px;color:var(--muted);padding:0 4px}
+.tick{position:absolute;top:16px;right:16px;width:24px;height:24px;border-radius:999px;background:var(--ink);display:none;place-items:center;z-index:2}
+.opt[aria-checked="true"] .tick{display:grid}
+
+/* ---------- submit ---------- */
+.submit{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px}
+.submit h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.submit p{font-size:14px;color:var(--muted);margin-bottom:14px;line-height:20px}
+.field{display:block;margin-bottom:12px}
+.field span{display:block;font-size:12px;font-weight:600;color:var(--body);margin-bottom:6px}
+.field input,.field textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--page);color:var(--ink)}
+.field textarea{min-height:84px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:2px solid var(--chip-ink);outline-offset:1px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.btn{border-radius:999px;padding:11px 20px;font-weight:600;font-size:14px}
+.btn.primary{background:var(--ink);color:#fff}
+.btn.sec{background:var(--chip);color:var(--chip-ink)}
+.access{background:var(--chip);color:var(--chip-ink);border-radius:12px;padding:10px 12px;font-size:13px;line-height:19px;margin-bottom:12px}
+.btn{text-decoration:none;display:inline-block}
+.status{font-size:13px;line-height:20px;margin-top:12px;color:var(--body)}
+.status.ok{color:var(--green);font-weight:600}
+.resp{margin-top:44px}
+.resp h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.resp .sub{font-size:14px;color:var(--muted);margin-bottom:14px}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+.tally div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.tally b{display:block;font-size:13px;margin-bottom:8px}
+.tally .row{display:flex;justify-content:space-between;font-size:13px;color:var(--body);padding:2px 0}
+.rlist{display:flex;flex-direction:column;gap:8px}
+.rlist div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:19px;color:var(--body)}
+.rlist b{color:var(--ink)}
+.summary{white-space:pre-wrap;font-size:13px;line-height:20px;background:var(--page);border-radius:12px;padding:12px 14px;margin-top:14px;display:none;color:var(--body)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ---------- phone mock ---------- */
+.device{width:426px;height:800px;border-radius:64px;padding:12px;background:linear-gradient(145deg,#C9CACC,#8E9094 45%,#B3B5B8);box-shadow:0 30px 60px -24px rgba(14,15,12,.5),inset 0 0 0 2px rgba(255,255,255,.35);position:relative}
+.screen{width:402px;height:776px;border-radius:52px;background:var(--page);overflow:hidden;position:relative;border:3px solid #111}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;background:#000;border-radius:18px;z-index:5}
+.scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.sb{height:54px;display:flex;justify-content:space-between;align-items:center;padding:6px 30px 0 34px;font-weight:600;font-size:15px}
+.sb svg{display:block}
+.hdr{height:60px;display:flex;align-items:center;padding:0 16px;gap:10px}
+.circ{width:40px;height:40px;border-radius:999px;background:#fff;display:grid;place-items:center;flex:none}
+.loc{flex:1;min-width:0}
+.loc b{font-size:16px;line-height:22px;font-weight:700;display:flex;align-items:center;gap:4px}
+.loc small{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+.content{padding:12px 8px 20px;display:flex;flex-direction:column;gap:12px}
+.bubble{align-self:flex-end;background:#fff;border:1px solid var(--line-soft);border-radius:20px 6px 20px 20px;padding:11px 16px;font-size:13px;color:var(--body)}
+.heading{font-size:14px;padding:0 8px;color:var(--ink)}
+.store{background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px;display:flex;align-items:center;gap:10px}
+.store img{width:34px;height:34px;border-radius:17px}
+.store .nm{flex:1;font-weight:600;font-size:15px;line-height:20px}
+.store .nm small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.price{background:var(--orange);color:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px}
+
+/* ---------- the card (shared by mock + previews) ---------- */
+.pcard.part{border-radius:16px}
+.pcard.small{width:150px;padding:16px 8px}
+.pcard{width:386px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:12px}
+.gal{position:relative;border-radius:14px;overflow:hidden}
+.strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.strip::-webkit-scrollbar{display:none}
+.tile{flex:none;scroll-snap-align:start;position:relative;border-radius:14px}
+.tile i{position:absolute;inset:0;background-repeat:no-repeat;background-origin:content-box}
+.m-single .strip{gap:0}
+.m-single .tile{width:368px;height:264px;background:var(--well)}
+.m-single .tile i{inset:14px;background-size:contain;background-position:center}
+.m-large .tile{width:368px;height:300px;background:#fff}
+.m-large .tile i{inset:6px;background-size:contain;background-position:center}
+.m-outline .strip{gap:8px}
+.m-outline .tile{width:160px;height:160px;background:#fff;box-shadow:inset 0 0 0 1px var(--line-soft)}
+.m-outline .tile i{inset:10px;background-size:contain;background-position:center}
+.m-grey .strip{gap:10px}
+.m-grey .tile{width:150px;height:150px;background:var(--well)}
+.m-grey .tile i{inset:10px;background-size:contain;background-position:center}
+.tile.zoom i{background-size:240%!important;background-position:90% 36%!important}
+.tile.sw i{background-size:70%!important}
+.m-outline .tile.sw i,.m-grey .tile.sw i{background-size:90%!important}
+.counter{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:600;border-radius:999px;padding:3px 8px;z-index:2}
+.ind{display:flex;justify-content:center}
+.dots{gap:6px;align-items:center;margin-top:-2px}
+.dots button{width:5px;height:5px;border-radius:50%;background:#CCC;padding:0}
+.dots button.on{width:6px;height:6px;background:var(--ink)}
+.bar{gap:4px;margin-top:-2px}
+.bar button{width:22px;height:3px;border-radius:2px;background:#D9D9D9;padding:0}
+.bar button.on{background:var(--ink)}
+.thumbs{gap:7px}
+.thumbs button{width:68px;height:68px;border-radius:12px;background:var(--well);box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden;padding:0}
+.thumbs button i{position:absolute;inset:8px;background-repeat:no-repeat;background-position:center;background-size:contain}
+.thumbs button.zoom i{background-size:240%;background-position:90% 36%}
+.thumbs button.sw i{background-size:80%}
+.thumbs button.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.body{padding:0 6px 6px;display:flex;flex-direction:column;gap:4px}
+.brand{font-size:12px;line-height:16px;font-weight:500;color:var(--muted)}
+.title{font-size:18px;line-height:24px;font-weight:600}
+.facts{font-size:13px;line-height:18px;color:var(--muted)}
+.vrow{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:6px}
+.sw14{width:14px;height:14px;border-radius:50%;background:#D9CDEC;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.tag{background:var(--chip);color:var(--chip-ink);font-size:11px;line-height:14px;font-weight:600;border-radius:999px;padding:3px 9px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.brandrow{display:flex;justify-content:space-between;align-items:center}
+.vlink{color:#000B80;font-size:12px;font-weight:600;display:flex;align-items:center;gap:2px}
+.headrow{display:flex;gap:12px;align-items:center}
+.headrow .hb{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.cbtn{flex:none;width:36px;height:36px;border-radius:50%;background:var(--well);display:grid;place-items:center}
+.vbtn{margin-top:12px;height:40px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(14,15,12,.25);font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:4px;width:100%}
+.vrowx{margin-top:10px;border-top:1px solid var(--line);padding-top:12px;display:flex;align-items:center;justify-content:space-between;text-align:left;width:100%}
+.vrowx b{display:block;font-size:14px;font-weight:600}
+.vrowx small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.scrim{position:absolute;inset:0;background:rgba(14,15,12,.4);opacity:0;pointer-events:none;transition:opacity .25s;z-index:6}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:86%;background:#fff;border-radius:24px 24px 0 0;transform:translateY(102%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:7;display:flex;flex-direction:column;box-shadow:0 -10px 30px -12px rgba(14,15,12,.4)}
+.sheet.open{transform:none}
+.sheet .grab{width:36px;height:4px;border-radius:2px;background:#D9D9D9;margin:8px auto 0;flex:none}
+.sheet header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex:none}
+.sheet header b{font-size:16px;font-weight:700}
+.sheet .x{width:32px;height:32px;border-radius:50%;background:var(--well);display:grid;place-items:center}
+.sheet .sbody{overflow-y:auto;padding:0 16px 28px;scrollbar-width:none}
+.sheet .sbody::-webkit-scrollbar{display:none}
+.sheet .ph{background-color:var(--well);border-radius:16px;height:200px;background-repeat:no-repeat;background-position:center;background-size:auto 88%;margin-bottom:12px}
+.sheet h3{font-size:18px;line-height:24px;font-weight:600;margin:2px 0 8px}
+.sheet .kd{margin-top:14px;font-size:13px;font-weight:700}
+.sheet dl{margin-top:6px}
+.sheet dl div{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:13px;line-height:18px}
+.sheet dt{color:var(--muted);flex:none}
+.sheet dd{text-align:right;font-weight:500}
+.specbox{display:flex;background:var(--well);border-radius:12px;padding:10px 14px;margin-top:8px}
+.specbox div{flex:1}
+.specbox div+div{border-left:1px solid rgba(14,15,12,.12);padding-left:14px}
+.specbox small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.specbox b{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;margin-top:2px}
+
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;gap:20px}
+  .phone-col{position:static}
+  .phone-box{overflow:hidden}
+  h1{font-size:26px;line-height:32px}
+}
+</style>
+
+<header class="top">
+  <div class="eyebrow">Save8 · Search results · Product card</div>
+  <h1>How should the product card look?</h1>
+  <p class="lede">The phone shows the card as you build it. Pick one option in each of the four parts below, then send your picks back. You can swipe the photos in the phone, and every choice can be changed.</p>
+</header>
+
+<main class="layout">
+  <aside class="phone-col">
+    <div class="phone-box" id="phoneBox">
+      <div class="phone-fit" id="phoneFit">
+        <div class="device">
+          <div class="screen">
+            <div class="island"></div>
+            <div class="scrim" id="scrim"></div>
+            <div class="sheet" id="sheet" role="dialog" aria-label="Product details" aria-hidden="true"><div class="grab"></div><header><b>Product details</b><button class="x" id="sheetX" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E0F0C" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header><div class="sbody"><div class="ph" style="background-image:url('assets-product-card/iphone-front-back.png')"></div><h3>iPhone 17 (256 GB) – Lavender</h3><div class="tags" style="margin-top:0"><span class="tag">Lavender</span><span class="tag">256 GB</span></div><div class="kd">Key details</div><dl><div><dt>Brand</dt><dd>Apple</dd></div><div><dt>Model</dt><dd>iPhone 17</dd></div><div><dt>Colour</dt><dd>Lavender</dd></div><div><dt>Storage</dt><dd>256 GB</dd></div><div><dt>Display</dt><dd>6.3" Super Retina XDR, ProMotion up to 120 Hz</dd></div><div><dt>Chip</dt><dd>A19</dd></div><div><dt>Rear camera</dt><dd>48 MP Dual Fusion (Main + Ultra Wide)</dd></div><div><dt>Front camera</dt><dd>18 MP Center Stage</dd></div></dl></div></div>
+            <div class="scroll">
+              <div class="sb"><span>9:41</span>
+                <svg width="73" height="16" viewBox="0 0 73 16" fill="none"><rect x="0" y="12" width="3" height="3" rx="1" fill="#0E0F0C"/><rect x="5" y="8" width="3" height="7" rx="1" fill="#0E0F0C"/><rect x="10" y="4" width="3" height="11" rx="1" fill="#0E0F0C"/><rect x="15" y="0" width="3" height="15" rx="1" fill="#0E0F0C"/><path d="M24 5.5a7.5 7.5 0 0 1 11 0M26.5 8.5a4 4 0 0 1 6 0" stroke="#0E0F0C" stroke-width="1.7" stroke-linecap="round"/><circle cx="29.5" cy="12" r="1.3" fill="#0E0F0C"/><rect x="46.5" y="2.5" width="23" height="11" rx="3.5" stroke="#0E0F0C" stroke-opacity=".4"/><rect x="48.5" y="4.5" width="19" height="7" rx="2" fill="#0E0F0C"/><rect x="71" y="6" width="1.5" height="4" rx=".7" fill="#0E0F0C" fill-opacity=".4"/></svg>
+              </div>
+              <div class="hdr">
+                <div class="circ"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E0F0C" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
+                <div class="loc"><b>Set your location <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0E0F0C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></b><small>For local stores, prices and delivery</small></div>
+                <div class="circ"><svg width="18" height="18" viewBox="0 0 24 24" fill="#0E0F0C"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></div>
+              </div>
+              <div class="content">
+                <div class="bubble">iPhone 17 256GB</div>
+                <div id="liveCard"></div>
+                <div class="heading">Best deal: Amazon, ₹76,900 after offers</div>
+                <div class="store"><img src="assets-product-card/amazon.png" alt=""><div class="nm">Amazon<small>Delivery by Mon, 26 Oct</small></div><div class="price">₹82,900 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="picks" id="picks"></div>
+  </aside>
+
+  <section id="groups"></section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- data ---------- */
+const A='assets-product-card/';
+const IMGS=[
+  {src:A+'iphone-front-back.png',alt:'Front and back'},
+  {src:A+'iphone-camera.png',alt:'Camera'},
+  {src:A+'iphone-back.png',alt:'Back'},
+  {src:A+'iphone-front-back.png',alt:'Screen',zoom:1},
+  {src:A+'lavender-swatch.png',alt:'Lavender',sw:1}
+];
+const GROUPS=[
+ {key:'g',title:'Photos',q:'How should the photos be shown?',opts:[
+  {v:'single',name:'One photo at a time',desc:'A single large grey panel. Swipe to see the next photo.'},
+  {v:'outline',name:'Swipe row, outlined tiles',desc:'Square white tiles with a thin outline. The next tile peeks in.'},
+  {v:'grey',name:'Swipe row, grey tiles',desc:'Soft grey square tiles, no outline. The next tile peeks in.'},
+  {v:'large',name:'Large photo, no panel',desc:'The phone sits straight on the white card with no frame around it.'}]},
+ {key:'i',title:'Gallery position',q:'How should the shopper know there are more photos?',opts:[
+  {v:'thumbs',name:'Thumbnails',desc:'A row of small photos below. Tap one to jump to it.'},
+  {v:'dots',name:'Dots',desc:'Five small dots, the current one is dark.'},
+  {v:'bar',name:'Progress bar',desc:'A thin segmented bar below the photos.'},
+  {v:'counter',name:'Counter only',desc:'A small “1/5” label on the photo. Nothing below.'}]},
+ {key:'d',title:'Product details',q:'What should sit under the photos?',opts:[
+  {v:'basic',name:'Key facts line',desc:'Brand, name, one line of key facts, then colour and storage.'},
+  {v:'spec',name:'Colour and storage box',desc:'Brand, name, key facts, then a grey box with colour and storage.'},
+  {v:'chips',name:'Chips',desc:'Brand, name, then blue chips for colour, storage and key specs.'}]},
+ {key:'v',title:'Opening full details',q:'How should the shopper open the full product details? Tapping it slides up a bottom sheet.',opts:[
+  {v:'button',name:'Full-width button',desc:'An outlined “View details” button at the bottom of the card.'},
+  {v:'link',name:'Inline text link',desc:'A small “View details” link on the brand line, top right.'},
+  {v:'row',name:'Disclosure row',desc:'A “Product details” row with a short hint and a chevron.'},
+  {v:'chevron',name:'Chevron button by title',desc:'A round chevron button beside the product name.'}]}
+];
+const DEFAULT={g:'grey',i:'dots',d:'spec',v:'button'};
+let state={...DEFAULT};
+const LET='ABCD';
+
+/* ---------- card renderer ---------- */
+function tileHTML(im,idx){
+  return `<div class="tile${im.zoom?' zoom':''}${im.sw?' sw':''}" data-i="${idx}"><i style="background-image:url('${im.src}')"></i></div>`;
+}
+function thumbHTML(im,idx){
+  return `<button class="${im.zoom?'zoom ':''}${im.sw?'sw ':''}${idx===0?'on':''}" data-go="${idx}" aria-label="Photo ${idx+1}"><i style="background-image:url('${im.src}')"></i></button>`;
+}
+function cardHTML(s,part){
+  const ind=s.i==='thumbs'?`<div class="ind thumbs">${IMGS.map(thumbHTML).join('')}</div>`
+   :s.i==='dots'?`<div class="ind dots">${IMGS.map((_,k)=>`<button class="${k?'':'on'}" data-go="${k}" aria-label="Photo ${k+1}"></button>`).join('')}</div>`
+   :s.i==='bar'?`<div class="ind bar">${IMGS.map((_,k)=>`<button class="${k?'':'on'}" data-go="${k}" aria-label="Photo ${k+1}"></button>`).join('')}</div>`:'';
+  const counter=s.i==='counter'?`<div class="counter">1/${IMGS.length}</div>`:'';
+  const facts='6.3" ProMotion · A19 chip · 48MP Dual Fusion camera';
+  const chev=n=>`<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>`;
+  const brand=s.v==='link'?`<div class="brandrow"><div class="brand">Apple</div><button class="vlink" data-sheet>View details ${chev(14)}</button></div>`:`<div class="brand">Apple</div>`;
+  const ttl=`<div class="title">iPhone 17 (256 GB) – Lavender</div>`;
+  const fx=s.d==='chips'?'':`<div class="facts">${facts}</div>`;
+  const head=`${brand}${ttl}${fx}`;
+  const top=s.v==='chevron'?`<div class="headrow"><div class="hb">${head}</div><button class="cbtn" data-sheet aria-label="View details">${chev(18)}</button></div>`:head;
+  let low;
+  if(s.d==='basic') low=`<div class="vrow"><span class="sw14"></span>Lavender<span>·</span><span class="tag">256 GB</span></div>`;
+  else if(s.d==='spec') low=`<div class="specbox"><div><small>Colour</small><b><span class="sw14"></span>Lavender</b></div><div><small>Storage</small><b>256 GB</b></div></div>`;
+  else low=`<div class="tags"><span class="tag">Lavender</span><span class="tag">256 GB</span><span class="tag">6.3" ProMotion</span><span class="tag">A19 chip</span><span class="tag">48MP camera</span></div>`;
+  const sig=s.v==='button'?`<button class="vbtn" data-sheet>View details ${chev(16)}</button>`
+    :s.v==='row'?`<button class="vrowx" data-sheet><span><b>Product details</b><small>Full specs, photos and other colours</small></span>${chev(18)}</button>`:'';
+  const det=top+low+sig;
+  const gal=`<div class="gal"><div class="strip">${IMGS.map(tileHTML).join('')}</div>${counter}</div>`;
+  if(part==='g') return `<div class="pcard part m-${s.g}">${gal.replace(counter,'')}</div>`;
+  if(part==='i'){
+    if(s.i==='counter') return `<div class="pcard part m-grey"><div class="gal"><div class="strip">${tileHTML(IMGS[0],0)}</div>${counter}</div></div>`;
+    return `<div class="pcard part m-grey${s.i==='thumbs'?'':' small'}">${ind}</div>`;
+  }
+  if(part==='d'||part==='v') return `<div class="pcard part"><div class="body">${det}</div></div>`;
+  return `<div class="pcard m-${s.g}" data-ind="${s.i}">${gal}${ind}<div class="body">${det}</div></div>`;
+}
+
+/* swipe <-> indicators */
+function sheet(open){const a=$('#sheet'),b=$('#scrim');a.classList.toggle('open',open);b.classList.toggle('open',open);a.setAttribute('aria-hidden',open?'false':'true');if(open)a.querySelector('.sbody').scrollTop=0}
+(function(){const sc=document.getElementById('scrim');if(sc){sc.addEventListener('click',()=>sheet(false));document.getElementById('sheetX').addEventListener('click',()=>sheet(false))}document.addEventListener('keydown',e=>{if(e.key==='Escape')sheet(false)})})();
+function wire(root){
+  root.querySelectorAll('[data-sheet]').forEach(b=>b.addEventListener('click',()=>sheet(true)));
+  const strip=root.querySelector('.strip'); if(!strip) return;
+  const tiles=[...strip.children];
+  const sync=()=>{
+    const x=strip.scrollLeft; let best=0,bd=1e9;
+    tiles.forEach((t,k)=>{const d=Math.abs(t.offsetLeft-strip.offsetLeft-x);if(d<bd){bd=d;best=k}});
+    root.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('on',+b.dataset.go===best));
+    const c=root.querySelector('.counter'); if(c) c.textContent=`${best+1}/${IMGS.length}`;
+  };
+  strip.addEventListener('scroll',()=>requestAnimationFrame(sync),{passive:true});
+  root.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{
+    const t=tiles[+b.dataset.go]; strip.scrollTo({left:t.offsetLeft-strip.offsetLeft,behavior:'smooth'});
+  }));
+  /* mouse drag so desktop viewers can swipe too */
+  let down=false,sx=0,sl=0;
+  strip.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;down=true;sx=e.clientX;sl=strip.scrollLeft;strip.style.scrollSnapType='none';strip.setPointerCapture(e.pointerId)});
+  strip.addEventListener('pointermove',e=>{if(down)strip.scrollLeft=sl-(e.clientX-sx)});
+  const up=()=>{if(!down)return;down=false;strip.style.scrollSnapType='';const near=tiles.reduce((a,t,k)=>Math.abs(t.offsetLeft-strip.offsetLeft-strip.scrollLeft)<Math.abs(tiles[a].offsetLeft-strip.offsetLeft-strip.scrollLeft)?k:a,0);strip.scrollTo({left:tiles[near].offsetLeft-strip.offsetLeft,behavior:'smooth'})};
+  strip.addEventListener('pointerup',up);strip.addEventListener('pointercancel',up);
+}
+
+/* ---------- page ---------- */
+const $=s=>document.querySelector(s);
+function renderLive(){ const h=$('#liveCard'); h.innerHTML=cardHTML(state); wire(h); }
+function renderPicks(){
+  const parts=GROUPS.map((g,n)=>{const k=g.opts.findIndex(o=>o.v===state[g.key]);return `<span class="pick-chip">${n+1}${LET[k]}</span>`}).join('');
+  $('#picks').innerHTML=`Your picks ${parts}`;
+}
+let lastDocs=null;
+function buildGroups(){
+  const keep={who:($('#who')||{}).value||'',note:($('#note')||{}).value||'',st:$('#status')?$('#status').textContent:'',ok:$('#status')?$('#status').classList.contains('ok'):false};
+  $('#groups').innerHTML=GROUPS.map((g,n)=>`
+   <div class="group" id="grp-${g.key}">
+    <div class="group-head"><div class="step">${n+1}</div><h2>${g.title}</h2></div>
+    <p class="q">${g.q}</p>
+    <div class="opts" role="radiogroup" aria-label="${g.title}">
+     ${g.opts.map((o,k)=>`
+      <div class="opt" role="radio" tabindex="0" aria-checked="${state[g.key]===o.v}" data-g="${g.key}" data-v="${o.v}">
+        <span class="tick"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>
+        <div class="pv-wrap"><div class="pv" data-pv data-max="${g.key==='i'?((o.v==='dots'||o.v==='bar')?1.8:.8):{g:.6,d:.7,v:.7}[g.key]}">${cardHTML({...state,[g.key]:o.v,...(g.key==='d'?{v:'none'}:{})},g.key)}</div></div>
+        <div class="opt-label"><span class="letter">${LET[k]}</span><span class="opt-name">${o.name}</span></div>
+        <div class="opt-desc">${o.desc}</div>
+      </div>`).join('')}
+    </div>
+   </div>`).join('')+`
+   <div class="submit" id="submit">
+    <h2>Send your picks</h2>
+    <p>Add your name and anything you would change, then submit. To submit here, please log in to claude.ai. No login? Use Submit without logging in: it opens a short form with your picks already filled in, and you press Submit there. You can also use Copy my picks.</p>
+    <div class="access" id="access" hidden></div>
+    <label class="field"><span>Your name</span><input id="who" autocomplete="name" placeholder="Name"></label>
+    <label class="field"><span>Anything else? (optional)</span><textarea id="note" placeholder="For example: I like the swipe row but want the photos bigger"></textarea></label>
+    <div class="btns"><button class="btn primary" id="send">Submit my picks</button><button class="btn sec" id="copy">Copy my picks</button><a class="btn sec" id="formlink" href="https://docs.google.com/forms/d/e/1FAIpQLSddfxD2A8NHg7KdaZx77NB_Q_9UWUL-Irr3RvnQeo-GVuB6BQ/viewform" target="_blank" rel="noopener">Submit without logging in</a></div>
+    <div class="status" id="status" role="status"></div>
+    <div class="summary" id="summary"></div>
+   </div>`;
+  fitPreviews();
+  if(keep.who)$('#who').value=keep.who; if(keep.note)$('#note').value=keep.note; if(keep.st)setStatus(keep.st,keep.ok);
+  if(window.__access)showAccess(window.__access);
+  if(lastDocs)renderResponses(lastDocs);
+}
+function fitPreviews(){
+  document.querySelectorAll('.pv-wrap').forEach(w=>{
+    const pv=w.firstElementChild; const card=pv.firstElementChild;
+    const sc=Math.min(+pv.dataset.max,(w.clientWidth-24)/card.offsetWidth);
+    pv.style.transform=`scale(${sc})`;
+    w.style.height=(card.offsetHeight*sc+24)+'px';
+    pv.style.left=Math.max(12,(w.clientWidth-card.offsetWidth*sc)/2)+'px'; pv.style.top='12px';
+  });
+}
+function choose(g,v){
+  state[g]=v;
+  renderLive(); renderPicks(); buildGroups(); bindOpts();
+}
+function bindOpts(){
+  document.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+    const y=window.scrollY; choose(b.dataset.g,b.dataset.v); window.scrollTo(0,y);
+  }));
+  document.querySelectorAll('.opt').forEach(b=>b.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();b.click()}}));
+  bindSubmit();
+}
+function summaryText(){
+  const lines=GROUPS.map((g,n)=>{const k=g.opts.findIndex(o=>o.v===state[g.key]);return `${n+1}${LET[k]} · ${g.title}: ${g.opts[k].name}`});
+  const who=($('#who')||{}).value||'', note=($('#note')||{}).value||'';
+  return `Save8 product card: my picks\n${who?'From: '+who+'\n':''}${lines.join('\n')}${note?'\nNote: '+note:''}\nLink: ${location.href.split('#')[0]}#${new URLSearchParams(state)}`;
+}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
+/* Google Form that collects answers without any login */
+const FORM={base:'https://docs.google.com/forms/d/e/1FAIpQLSddfxD2A8NHg7KdaZx77NB_Q_9UWUL-Irr3RvnQeo-GVuB6BQ',e:{who:'entry.2129542889',g:'entry.1496809791',i:'entry.417525995',d:'entry.521953043',v:'entry.344990852',note:'entry.273813572'}};
+function formParams(){
+  const p=new URLSearchParams();
+  p.set(FORM.e.who,(($('#who')||{}).value||'').trim());
+  GROUPS.forEach((g,n)=>{const k=g.opts.findIndex(o=>o.v===state[g.key]);p.set(FORM.e[g.key],`${n+1}${LET[k]} · ${g.title}: ${g.opts[k].name}`)});
+  p.set(FORM.e.note,(($('#note')||{}).value||'').trim());
+  return p;
+}
+function formUrl(){return FORM.base+'/viewform?usp=pp_url&'+formParams().toString()}
+let dbApi=null, myId=null, saving=false;
+function setStatus(t,ok){const e=$('#status');if(!e)return;e.textContent=t;e.classList.toggle('ok',!!ok)}
+function bindSubmit(){
+  const sum=()=>{const s=$('#summary');s.style.display='block';s.textContent=summaryText();return s.textContent};
+  $('#formlink').addEventListener('click',e=>{e.currentTarget.href=formUrl()});
+  $('#copy').onclick=async()=>{const t=sum();try{await navigator.clipboard.writeText(t);toast('Picks copied')}catch(e){toast('Select the text below and copy it')}};
+  $('#send').onclick=async()=>{
+    if(saving)return;
+    const who=$('#who').value.trim();
+    if(!who){setStatus('Add your name so the team knows who answered.');$('#who').focus();return}
+    if(!dbApi||!myId){setStatus('Saving is not available in this view. Use Copy my picks and send it to the design team.');sum();return}
+    saving=true;setStatus('Saving…');
+    try{
+      await dbApi.doc('responses/'+myId).set({name:who,picks:{...state},labels:GROUPS.map((g,n)=>{const k=g.opts.findIndex(o=>o.v===state[g.key]);return `${n+1}${LET[k]}`}),note:$('#note').value.trim(),at:new Date().toISOString()});
+      setStatus('Thanks, your picks are saved. You can change them and submit again.',true);
+    }catch(e){setStatus('Your picks could not be saved ('+(e&&e.code||'error')+'). Use Submit without logging in instead.');sum()}
+    saving=false;
+  };
+  if(window.__prefill){const p=window.__prefill;if(p.name)$('#who').value=p.name;if(p.note)$('#note').value=p.note}
+}
+
+/* shared answers: each person writes responses/<their id>; only editors read them all */
+function renderResponses(docs){
+  lastDocs=docs;
+  let box=$('#resp'); if(!box){box=document.createElement('section');box.id='resp';box.className='resp';$('#groups').appendChild(box)}
+  const rows=docs.map(d=>d.data());
+  const tallies=GROUPS.map((g,n)=>`<div><b>${n+1} · ${g.title}</b>${g.opts.map((o,k)=>`<div class="row"><span>${LET[k]} · ${o.name}</span><span>${rows.filter(r=>r.picks&&r.picks[g.key]===o.v).length}</span></div>`).join('')}</div>`).join('');
+  const list=rows.map(r=>{const el=document.createElement('div');el.innerHTML='<b></b> <span></span><br><i></i>';el.children[0].textContent=r.name||'No name';el.children[1].textContent=(r.labels||[]).join(' · ');el.children[3].textContent=r.note||'';return el.outerHTML}).join('');
+  box.innerHTML=`<h2>Responses (${rows.length})</h2><p class="sub">Only editors see this section.</p><div class="tally">${tallies}</div><div class="rlist">${list||'<div>No answers yet.</div>'}</div>`;
+}
+function showAccess(t){const e=$('#access');if(e){e.textContent=t;e.hidden=false}window.__access=t}
+async function initShared(){
+  try{
+    const c=window.claude; if(!c||!c.use) return;
+    const [db,user]=await Promise.all([c.use('db'),c.use('user')]);
+    if(!db||!user){ showAccess('You are not signed in, so your picks cannot be saved here. Sign in to claude.ai and reopen this page, or use Submit without logging in.'); return }
+    if(user.can('data.write')===false) showAccess('Your access to this page is view-only, so you cannot submit here. Ask the design team for Contributor access, or use Submit without logging in.');
+    dbApi=db; myId=await user.id();
+    if(myId){
+      const snap=await db.doc('responses/'+myId).get();
+      if(snap.exists){const d=snap.data();window.__prefill=d;
+        if(d.picks){GROUPS.forEach(g=>{if(g.opts.some(o=>o.v===d.picks[g.key]))state[g.key]=d.picks[g.key]});renderLive();renderPicks();buildGroups();bindOpts()}
+        else bindSubmit();
+        setStatus('Your earlier picks are loaded. Change them and submit again if you like.',true)}
+    }
+    if(user.canEdit()) db.collection('responses').orderBy('at','desc').onSnapshot(q=>renderResponses(q.docs),()=>{});
+  }catch(e){showAccess('Saving is not available in this view. Use Submit without logging in.')}
+}
+
+/* phone scales down on narrow screens */
+function fitPhone(){
+  const box=$('#phoneBox'),fit=$('#phoneFit');
+  const avail=Math.min(426,window.innerWidth-32); const s=window.innerWidth<=960?avail/426:1;
+  fit.style.transform=s<1?`scale(${s})`:''; box.style.height=s<1?(800*s)+'px':''; box.style.width=s<1?(426*s)+'px':'';
+}
+
+/* init, restoring picks from the link if present */
+(function(){
+  renderLive();renderPicks();buildGroups();bindOpts();fitPhone();initShared();
+  window.addEventListener('resize',()=>{fitPhone();fitPreviews()});
+  (document.fonts&&document.fonts.ready||Promise.resolve()).then(fitPreviews);
+  window.addEventListener('load',fitPreviews);
+})();
+</script>

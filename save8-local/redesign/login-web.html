@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#025332" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1D14" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" type="image/png" href="assets-login/app-icon.png">
+<link rel="apple-touch-icon" href="assets-login/app-icon.png">
+<script>
+  // Theme before first paint: ?theme=dark|light, then a saved choice, then the system setting.
+  (function () {
+    var q = new URLSearchParams(location.search).get("theme"), saved = null;
+    try { saved = localStorage.getItem("save8-theme"); } catch (e) {}
+    var t = q === "dark" || q === "light" ? q : saved === "dark" || saved === "light" ? saved
+          : (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<title>Save8 · Web login</title>
+<style>
+  @font-face { font-family: "Inter"; src: url("assets-login/inter.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: "League Spartan"; src: url("assets-login/league-spartan.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+  :root {
+    --ink: #0E0F0C;
+    --body: #454745;
+    --muted: #6A6C6A;
+    --placeholder: #767874;   /* QA: 4.5:1 on white (was #A3A5A2, 2.5:1) */
+    --page: #F7F4ED;
+    --surface: #FFFFFF;
+    --line: rgba(14, 15, 12, .12);
+    --line-strong: rgba(14, 15, 12, .18);
+    --orange: #E6651A;
+    --link: #000B80;
+    --green: #007A45;
+    --red: #BF1E2C;
+    --header-green: #025332;
+    --disabled-bg: rgba(14, 15, 12, .05);
+    --disabled-fg: rgba(14, 15, 12, .32);
+    --radius-lg: 14px;
+    --bg: #F7F4ED;
+    --tint: rgba(14, 15, 12, .05);          /* hover / highlighted rows */
+    --tint-soft: rgba(14, 15, 12, .04);     /* search box */
+    --dot: rgba(14, 15, 12, .2);
+    --grabber: rgba(14, 15, 12, .15);
+    --surface-hover: #FAFAF8;
+    --outline-bg: #FFFFFF;
+    --outline-border: #0E0F0C;
+    --scrim: 14, 15, 12;
+    --scrim-alpha: .55;
+    --shadow: rgba(14, 15, 12, .16);
+    color-scheme: light;
+  }
+  /* Dark theme: the user's dark palette from the Figma dark frames. Follows the system unless the page forces a theme. */
+  :root[data-theme="dark"] {
+    --ink: #F6F4EE; --body: #C4C1B8; --muted: #A9A69D; --placeholder: #96948C;
+    --page: #2A2C26; --surface: #1F211D; --bg: #0B0C0A;   /* lifted (user: dark was too dark); near save8.ai's #202023 */
+    --line: rgba(246, 244, 238, .14); --line-strong: rgba(246, 244, 238, .22);
+    --link: #7FA7FF; --green: #43D895; --red: #F87171; --header-green: #0B1D14;
+    --disabled-bg: rgba(246, 244, 238, .06); --disabled-fg: rgba(246, 244, 238, .32);
+    --tint: rgba(246, 244, 238, .07); --tint-soft: rgba(246, 244, 238, .05);
+    --dot: rgba(246, 244, 238, .25); --grabber: rgba(246, 244, 238, .2);
+    --surface-hover: #2A2C27; --outline-bg: #272924; --outline-border: rgba(244, 244, 245, .2);
+    --scrim: 0, 0, 0; --scrim-alpha: .38; --shadow: rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* page behind the sheet can't scroll while it's open (iOS needs position:fixed) */
+  html.locked, html.locked body { overflow: hidden; }
+  html.locked body { position: fixed; left: 0; right: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  button:disabled { cursor: default; }
+
+  /* ---------- Live home (screenshot of save8.ai, light theme) ---------- */
+  .home { position: relative; width: 100%; background: var(--header-green); }
+  .home img.shot { display: block; width: 100%; height: auto; }
+  .home .shot-mobile { display: none !important; }
+  .hotspot {
+    position: absolute; border: 0; background: transparent; border-radius: 999px;
+    left: 93.37%; top: 1.556%; width: 4.96%; height: 4.22%;
+  }
+  .hotspot:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .theme-spot { left: 90%; top: 1.6%; width: 2.6%; height: 4.2%; }
+  .avatar-slot {
+    position: absolute; display: none; align-items: center; justify-content: flex-end;
+    left: 92.9%; top: .9%; width: 5.8%; height: 5.6%; background: var(--header-green);
+    border-radius: 999px; box-shadow: 0 0 10px 8px var(--header-green); /* also hides the live button's orange glow */
+  }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--orange); color: #fff;
+    display: grid; place-items: center; font-weight: 600; font-size: 16px;
+  }
+  body.signed-in #loginBtn { display: none; }
+  body.signed-in .avatar-slot { display: flex; }
+
+  /* ---------- Overlay ---------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 10; display: none;
+    background: rgba(var(--scrim), calc(var(--scrim-alpha) * var(--drag, 1)));   /* --drag drops while the sheet is dragged */
+    align-items: center; justify-content: center;
+  }
+  .overlay.open { display: flex; animation: fade .18s ease-out; }
+  .overlay.closing { animation: fade-out .2s ease-in forwards; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-out { to { opacity: 0; } }
+
+  .dialog-wrap { position: relative; will-change: transform; }
+  .overlay.open .dialog-wrap { animation: pop .24s cubic-bezier(.2,.8,.2,1); }
+  .overlay.closing .dialog-wrap { animation: pop-out .2s ease-in forwards; }
+  @keyframes pop-out { to { transform: translateY(8px) scale(.98); opacity: 0; } }
+  .dialog-wrap.settle { transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+  .close {
+    position: absolute; right: 0; top: -52px;
+    width: 40px; height: 40px; border-radius: 50%; border: 0;
+    background: var(--surface); color: var(--ink); box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    display: grid; place-items: center;
+  }
+  .close svg { width: 18px; height: 18px; }
+
+  .dialog {
+    width: 840px; height: 520px; padding: 8px;
+    display: flex; background: var(--surface); border-radius: 28px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.25);
+  }
+  @keyframes pop { from { transform: translateY(12px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* Welcome carousel card */
+  .visual {
+    width: 372px; flex: none; border-radius: 20px; background: var(--page);
+    position: relative; padding: 0; overflow: hidden;   /* slides fill the card; dots float over the bottom */
+  }
+  /* Swipe carousel: slides sit on a track that moves sideways; drag or swipe to change */
+  .slides {
+    position: absolute; inset: 0; overflow: hidden;
+    touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none;
+  }
+  .slides.dragging { cursor: grabbing; }
+  .track { display: flex; height: 100%; will-change: transform; transition: transform .6s cubic-bezier(.22,.9,.24,1); }
+  .track.no-anim { transition: none; }
+  .slide { position: relative; overflow: hidden; flex: 0 0 100%; padding: 32px 28px 0; }
+  .slide h2, .slide img { transition: opacity .45s ease, transform .6s cubic-bezier(.22,.9,.24,1); }
+  .slide:not(.active) h2 { opacity: .35; transform: translateY(6px); }
+  .slide:not(.active) img { opacity: .6; transform: scale(.92); }
+  .slides.dragging .slide h2, .slides.dragging .slide img { opacity: 1; transform: none; }
+  .slide h2 {
+    position: relative; z-index: 1;
+    font-family: "League Spartan", sans-serif; font-weight: 700; font-size: 30px; line-height: 32px;
+    margin: 0; width: 300px; letter-spacing: -.2px; text-align: center;
+  }
+  /* Zoomed illustration, as in Figma: 416×394 at (-22, 86) in the 372×504 card, bleeding past the card edges */
+  .slide img { position: absolute; left: -22px; top: 86px; width: 416px; height: 394px; object-fit: contain; border-radius: 16px; margin: 0; }
+  .dots { position: absolute; left: 28px; bottom: 28px; z-index: 2; display: flex; gap: 6px; }
+  /* dark renders have a near-black backdrop; let it take on the card colour instead of showing as a black box */
+  :root[data-theme="dark"] .slide { background: var(--page); }   /* backdrop for the blend (the track is its own layer) */
+  :root[data-theme="dark"] .slide img { mix-blend-mode: lighten; }
+  .dots button { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 3px; background: var(--dot); transition: width .25s, background .25s; }
+  .dots button.active { width: 18px; background: var(--ink); }
+
+  /* Form column */
+  .form {
+    position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 40px 40px; gap: 20px;
+  }
+  .col { width: 344px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
+  .app-icon { width: 44px; height: 44px; border-radius: 12px; }
+  /* Desktop sign-in rhythm: icon 16 → title 28 → field 12 → Continue */
+  .step-phone .col { gap: 12px; }
+  .step-phone .app-icon { margin-bottom: 4px; }
+  .step-phone .title { margin-bottom: 16px; }
+  .title {
+    font-family: "League Spartan", sans-serif; font-weight: 700; font-size: 34px; line-height: 38px;
+    margin: 0; text-align: center;
+  }
+  .heading { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; width: 100%; }
+  .subtitle { margin: 0; font-size: 15px; line-height: 22px; color: var(--muted); }
+  .subtitle strong { color: var(--ink); font-weight: 600; }
+  .link { border: 0; background: none; padding: 0; color: var(--link); font-weight: 600; }
+  .link:hover { text-decoration: underline; }
+
+  .back {
+    position: absolute; left: 16px; top: 16px;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
+    display: grid; place-items: center; z-index: 2;
+  }
+  .back svg { width: 18px; height: 18px; }
+
+  /* Phone field */
+  .phone {
+    width: 100%; height: 58px; border-radius: var(--radius-lg);
+    border: 1px solid var(--line); background: var(--surface);
+    display: flex; align-items: center; gap: 0; padding: 0 16px;
+  }
+  /* .focused is set from JS (works in browsers without :has) */
+  .phone.focused { border: 1.5px solid var(--link); padding: 0 15.5px; }
+  .flag { width: 22px; height: 16px; border-radius: 2px; overflow: hidden; flex: none; display: block; box-shadow: 0 0 0 .5px rgba(14,15,12,.12); }
+  .flag svg { display: block; width: 100%; height: 100%; }
+  .cc { font-weight: 500; font-size: 17px; margin-left: 8px; }
+
+  /* Country code button + dropdown */
+  .phone { position: relative; cursor: text; }
+  .cc-btn {
+    display: flex; align-items: center; height: 40px; margin-left: -8px; padding: 0 8px;
+    border: 0; background: transparent; border-radius: 10px; transition: background-color .15s;
+  }
+  .cc-btn:hover, .cc-btn[aria-expanded="true"] { background: var(--tint); }
+  .cc-btn .chev { width: 16px; height: 16px; margin-left: 4px; color: var(--muted); transition: transform .2s ease; }
+  .cc-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .phone .divider { margin-left: 4px; }   /* button's 8px right padding + 4 = 12px to the divider */
+  .cc-menu {
+    position: absolute; left: -1px; right: -1px; top: calc(100% + 8px); z-index: 5; cursor: default;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px;
+    box-shadow: 0 16px 40px var(--shadow), 0 2px 6px rgba(14,15,12,.06);
+    transform-origin: top center; animation: menu-in .18s cubic-bezier(.2,.8,.2,1);
+  }
+  .cc-menu[hidden] { display: none; }
+  .cc-menu.up { top: auto; bottom: calc(100% + 8px); transform-origin: bottom center; }   /* flipped when there's no room below */
+  .cc-menu.down { top: calc(100% + 8px); bottom: auto; transform-origin: top center; }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+  .cc-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: var(--tint-soft); margin-bottom: 6px; }
+  .cc-search svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+  /* 16px minimum on inputs so iOS Safari doesn't zoom in on focus */
+  .cc-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--ink); }
+  .cc-search input::placeholder { color: var(--placeholder); }
+  .cc-list { list-style: none; margin: 0; padding: 0; max-height: 232px; overflow-y: auto; overscroll-behavior: contain; }
+  .cc-list li {
+    display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 10px; border-radius: 10px;
+    font-size: 15px; cursor: pointer;
+  }
+  .cc-list li .cc-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cc-list li .cc-dial { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cc-list li .tick { width: 18px; height: 18px; flex: none; visibility: hidden; }
+  .cc-list li[aria-selected="true"] { font-weight: 600; }
+  .cc-list li[aria-selected="true"] .tick { visibility: visible; }
+  .cc-list li.hl { background: var(--tint); }
+  .cc-empty { margin: 8px 10px 10px; color: var(--muted); font-size: 14px; }
+  .divider { width: 1px; height: 24px; background: var(--line); margin: 0 12px; }   /* 12px either side, as in Figma */
+  .phone input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    font: inherit; font-size: 17px; color: var(--ink); caret-color: var(--link);
+  }
+  .phone input::placeholder { color: var(--placeholder); }
+
+  /* Buttons (Button v2) */
+  .btn {
+    width: 100%; height: 48px; border-radius: var(--radius-lg); border: 0;
+    font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary { background: var(--orange); color: #fff; }
+  .btn-primary:hover:not(:disabled) { filter: brightness(.96); }
+  .btn-primary:disabled { background: var(--disabled-bg); color: var(--disabled-fg); }
+  .btn-outline { background: var(--outline-bg); color: var(--ink); border: 1px solid var(--outline-border); border-radius: 999px; }
+  .btn-outline:hover { background: var(--surface-hover); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+
+  /* Code field */
+  .code-block { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+  .code {
+    position: relative; width: 100%; height: 58px; border-radius: var(--radius-lg);
+    border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; padding: 0 16px 0 18px;
+  }
+  .code.focus { border: 1.5px solid var(--link); padding: 0 15.5px 0 17.5px; }
+  .code.ok { border: 1.5px solid var(--green); padding: 0 15.5px 0 17.5px; }
+  .code.err { border: 1.5px solid var(--red); padding: 0 15.5px 0 17.5px; }
+  .code input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    font: inherit; font-weight: 600; font-size: 22px; letter-spacing: .5em; color: var(--ink); caret-color: var(--link);
+  }
+  .code input::placeholder { font-weight: 400; font-size: 17px; letter-spacing: 0; color: var(--placeholder); }
+  .code .state { width: 22px; height: 22px; flex: none; display: none; }
+  .code.verifying .spin, .code.ok .check, .code.err .bang { display: block; }
+  .spin { animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .line { margin: 0; font-size: 14px; line-height: 20px; color: var(--muted); text-align: center; }
+  .line strong { font-weight: 700; color: var(--body); }
+  .line.status { color: var(--link); }
+  .line.error { color: var(--red); font-size: 13px; line-height: 16px; font-weight: 500; }
+  .line.prompt { font-size: 13px; line-height: 16px; }
+  #codeMsg { display: flex; flex-direction: column; gap: 10px; }
+  .resend { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .wa-badge { width: 22px; height: 22px; border-radius: 50%; background: #25D366; display: grid; place-items: center; }
+  .wa-badge svg { width: 14px; height: 14px; }
+
+  .hidden { display: none !important; }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translate(-50%, 16px); opacity: 0; z-index: 20;
+    background: var(--surface); color: var(--ink); border-radius: 14px; padding: 12px 18px 12px 14px;
+    display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,.16); transition: opacity .25s, transform .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast svg { width: 20px; height: 20px; }
+
+  /* ---------- Phone view: bottom sheet (also landscape phones, which are wide but short) ---------- */
+  @media (max-width: 767px), (max-height: 500px) and (orientation: landscape) {
+    .form, .step-phone, .step-otp, .dialog > * { min-width: 0; }   /* QA: stops the sheet overflowing narrow phones (≤405px) */
+    .home .shot-desktop { display: none !important; }
+    .home .shot-mobile { display: block !important; }
+    .hotspot { left: 77.56%; top: 2.03%; width: 18.3%; height: 4.81%; }
+    .theme-spot { left: 66.4%; top: 2.2%; width: 9.2%; height: 4.5%; }
+    .avatar-slot { left: 76.5%; top: 1.6%; width: 20.5%; height: 5.4%; padding-right: 1.5%; }
+
+    /* Specs from Figma P2–P7 / PE1–PE3 (phone view, 390 wide) */
+    /* Keyboard: the page and the overlay stay put (JS cancels the browser's pan-to-input) and only the sheet
+       slides up by the keyboard's height (--kb, from visualViewport), so nothing behind it jumps. */
+    .overlay { align-items: flex-end; padding-bottom: var(--kb, 0px); transition: padding-bottom .26s cubic-bezier(.2,.8,.2,1); }
+    .dialog-wrap { width: 100%; max-height: 100%; max-width: 560px; }   /* landscape: don't stretch the sheet edge to edge */
+    .close { right: 13px; top: -52px; }
+    .dialog {
+      width: 100%; height: auto; padding: 0; border-radius: 28px 28px 0 0;
+      padding-bottom: env(safe-area-inset-bottom);
+      touch-action: none;           /* the sheet itself can be dragged down to dismiss */
+    }
+    html.kb .dialog { padding-bottom: 0; }   /* keyboard up: the home-indicator inset sits under the keyboard */
+    .overlay.open .dialog-wrap { animation: up .32s cubic-bezier(.2,.9,.25,1); }
+    .overlay.closing .dialog-wrap { animation: down .24s ease-in forwards; }
+    @keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes down { to { transform: translateY(100%); } }
+    .visual { display: none; }
+    .form { justify-content: flex-start; align-items: stretch; gap: 0; }
+    .col { width: 100%; align-items: stretch; }
+    .app-icon { display: none; }
+    .grabber { display: block !important; }
+
+    /* Sign-in sheet: title 36px from the top, 16 to the field, 12 to Continue */
+    .step-phone { padding: 36px 16px 24px; }   /* + the sheet's safe-area inset (home bar) on phones that have one */
+    html.kb .step-phone { padding-bottom: 16px; }   /* keyboard up: Continue sits 16px above it */
+    .step-phone .col { gap: 12px; }
+    .step-phone .title { font-size: 28px; line-height: 32px; text-align: left; margin-bottom: 4px; }
+    /* on phones the list opens upward so it never sits under the keyboard */
+    .cc-menu { top: auto; bottom: calc(100% + 8px); transform-origin: bottom center; animation-name: menu-up; }
+    @keyframes menu-up { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+    /* OTP: expanded sheet from 50px, back 16px in, title at 74px, Verify pinned to the bottom */
+    .overlay.otp .dialog { min-height: calc(100vh - 50px); min-height: calc(var(--vvh, 100dvh) - 50px); border-radius: 24px 24px 0 0; }
+    html.kb .overlay.otp .dialog { min-height: calc(var(--vvh, 100dvh) - 8px); }   /* keyboard up: use all the visible height */
+    html.kb .step-otp { padding-top: 64px; padding-bottom: 16px; }
+    html.kb .step-otp .heading { margin-bottom: 20px; }
+
+    /* Very short visible height (landscape phone, keyboard up): the sheet scrolls instead of being cut off,
+       the close button moves inside it and the OTP sheet stops forcing full height. */
+    html.short .dialog { max-height: var(--vvh, 100dvh); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+    html.short .close { top: 8px; right: 8px; z-index: 3; width: 36px; height: 36px; box-shadow: none; background: var(--tint); }
+    html.short .grabber { display: none !important; }
+    html.short .step-phone { padding: 20px 16px 16px; }
+    html.short .step-phone .title { font-size: 22px; line-height: 26px; padding-right: 44px; }
+    html.short .overlay.otp .dialog { min-height: 0; }
+    html.short .step-otp { padding: 60px 16px 16px; }
+    html.short .step-otp .heading { margin-bottom: 12px; }
+    html.short .step-otp .verify-wrap { margin-top: 16px; padding-top: 0; }
+    html.short .cc-menu { top: calc(100% + 8px); bottom: auto; animation-name: menu-in; }
+    .overlay.otp .close { display: none; }
+    .step-otp { padding: 74px 16px 38px; }
+    .step-otp .col { gap: 0; flex: 1; }
+    .step-otp .heading { align-items: flex-start; text-align: left; gap: 4px; margin-bottom: 28px; }
+    .step-otp .title { font-size: 26px; line-height: 34px; text-align: left; }
+    .step-otp .subtitle { font-size: 16px; }
+    .step-otp .code-block { gap: 12px; }
+    .step-otp .line { text-align: left; }
+    .step-otp #resendLine { margin-top: 4px; }
+    .step-otp .error:not(.hidden) + #resendLine { margin-top: 0; }
+    .step-otp .resend { gap: 12px; margin-top: -2px; }
+    .step-otp .verify-wrap { margin-top: auto; padding-top: 24px; }
+  }
+  /* Short desktop/tablet windows (or landscape phones over 768px): the popup scrolls instead of being cut off */
+  @media (min-width: 768px) and (min-height: 501px) and (max-height: 600px) {
+    .overlay { align-items: flex-start; overflow-y: auto; padding: 64px 0 24px; }
+  }
+  @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px) {
+    .dialog { width: calc(100vw - 48px); }
+    .visual { width: 42%; }
+  }
+  .grabber { display: none; position: absolute; left: 50%; top: 8px; width: 36px; height: 5px; margin-left: -18px; border-radius: 3px; background: var(--grabber); }
+
+  /* ---------- Interaction states ---------- */
+  .btn, .close, .back, .dots button { transition: transform .1s ease, background-color .2s, color .2s, filter .2s, box-shadow .2s; }
+  .btn:active:not(:disabled), .close:active, .back:active { transform: scale(.97); }
+  .close:hover, .back:hover { box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+  .back:hover { background: var(--surface-hover); }
+  .phone, .code { transition: border-color .2s, box-shadow .2s; }
+  .code.ok .check { animation: pop-in .36s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes pop-in { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+  /* Continue: label crossfades into a spinner while the code is being sent */
+  #continueBtn { position: relative; overflow: hidden; }
+  .btn .btn-label { transition: opacity .18s ease, transform .22s cubic-bezier(.2,.8,.2,1); }
+  .btn .btn-spin {
+    position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    opacity: 0; transform: scale(.5); transition: opacity .18s ease, transform .26s cubic-bezier(.2,1.4,.4,1);
+  }
+  .btn .btn-spin path { transform-origin: 11px 11px; animation: spin .75s linear infinite; }
+  .btn.loading { pointer-events: none; }
+  .btn.loading .btn-label { opacity: 0; transform: translateY(-8px); }
+  .btn.loading .btn-spin { opacity: 1; transform: none; }
+  .btn:disabled .btn-spin { display: none; }
+  .phone { transition: border-color .2s, box-shadow .2s, opacity .2s; }
+  .phone.sending { opacity: .55; pointer-events: none; }
+  .step-enter { animation: step-in .26s cubic-bezier(.2,.8,.2,1); }
+  .step-enter.reverse { animation-name: step-in-reverse; }
+  @keyframes step-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+  @keyframes step-in-reverse { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Live save8.ai home, light theme (captured 23 Oct 2026) -->
+<main class="home" aria-label="Save8 home">
+  <img class="shot shot-desktop" src="assets-login/home-desktop.png" data-light="assets-login/home-desktop.png" data-dark="assets-login/home-desktop-dark.png" alt="Save8 home page: Never Overpay Again">
+  <img class="shot shot-mobile" src="assets-login/home-mobile.png" data-light="assets-login/home-mobile.png" data-dark="assets-login/home-mobile-dark.png" alt="Save8 home page: Never Overpay Again">
+  <button class="hotspot" id="loginBtn" aria-label="Login" aria-haspopup="dialog"></button>
+  <!-- the live site's display button (monitor icon) switches light / dark -->
+  <button class="hotspot theme-spot" id="themeBtn" aria-label="Switch light or dark theme"></button>
+  <div class="avatar-slot" aria-label="Signed in"><div class="avatar">R</div></div>
+</main>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="dialog-wrap">
+    <button class="close" id="closeBtn" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+
+    <div class="dialog">
+      <!-- Welcome carousel (desktop) -->
+      <aside class="visual" aria-label="Why Save8">
+        <div class="slides" aria-roledescription="carousel">
+          <div class="track">
+            <div class="slide active"><h2>Share any product, get the lowest price</h2><img src="assets-login/slide-1.png" data-light="assets-login/slide-1.png" data-dark="assets-login/slide-1-dark.png" alt="" draggable="false"></div>
+            <div class="slide"><h2>Save more with gift cards and coupons</h2><img src="assets-login/slide-2.png" data-light="assets-login/slide-2.png" data-dark="assets-login/slide-2-dark.png" alt="" draggable="false"></div>
+            <div class="slide"><h2>Pay with the card that saves you the most</h2><img src="assets-login/slide-3.png" data-light="assets-login/slide-3.png" data-dark="assets-login/slide-3-dark.png" alt="" draggable="false"></div>
+          </div>
+        </div>
+        <div class="dots" role="tablist">
+          <button class="active" aria-label="Slide 1"></button><button aria-label="Slide 2"></button><button aria-label="Slide 3"></button>
+        </div>
+      </aside>
+
+      <!-- Step 1: phone -->
+      <section class="form step-phone" id="stepPhone">
+        <span class="grabber"></span>
+        <form class="col" id="phoneForm" novalidate>
+          <img class="app-icon" src="assets-login/app-icon.png" alt="Save8">
+          <h1 class="title" id="dlgTitle">Sign in or sign up</h1>
+          <div class="phone" id="phoneField">
+            <button class="cc-btn" id="ccBtn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="ccMenu" aria-label="Country code: India +91">
+              <span class="flag" id="ccFlag"></span>
+              <span class="cc" id="ccCode">+91</span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span class="divider"></span>
+            <input id="phone" type="tel" inputmode="numeric" pattern="[0-9 ]*" autocomplete="tel-national" enterkeyhint="go" placeholder="Mobile number" maxlength="16" aria-label="Mobile number">
+
+            <!-- Country code dropdown -->
+            <div class="cc-menu" id="ccMenu" hidden>
+              <div class="cc-search">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <input id="ccSearch" type="text" placeholder="Search country or code" aria-label="Search country or code" autocomplete="off">
+              </div>
+              <ul class="cc-list" id="ccList" role="listbox" aria-label="Country code"></ul>
+              <p class="cc-empty hidden" id="ccEmpty">No matches</p>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="continueBtn" type="submit" disabled>
+            <span class="btn-label">Continue</span>
+            <svg class="btn-spin" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="9" stroke="#fff" stroke-opacity=".35" stroke-width="2.5"/><path d="M11 2a9 9 0 0 1 9 9" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+        </form>
+      </section>
+
+      <!-- Step 2: OTP -->
+      <section class="form step-otp hidden" id="stepOtp">
+        <span class="grabber"></span>
+        <button class="back" id="backBtn" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M15 18 9 12l6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="col">
+          <img class="app-icon" src="assets-login/app-icon.png" alt="Save8">
+          <div class="heading">
+            <h1 class="title">Enter OTP</h1>
+            <p class="subtitle">OTP sent to <strong id="sentTo">+91 98765 43210</strong> · <button class="link" id="editBtn" type="button">Edit</button></p>
+          </div>
+          <div class="code-block">
+            <div class="code focus" id="codeBox">
+              <input id="code" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" enterkeyhint="done" maxlength="4" placeholder="4-digit code" aria-label="4-digit code" aria-describedby="codeMsg">
+              <svg class="state spin" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#000B80" stroke-opacity=".15" stroke-width="2.5"/><path d="M11 2a9 9 0 0 1 9 9" stroke="#000B80" stroke-width="2.5" stroke-linecap="round"/></svg>
+              <svg class="state check" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#007A45"/><path d="m7 12.5 3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg class="state bang" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#BF1E2C"/><path d="M12 7v6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.3" fill="#fff"/></svg>
+            </div>
+            <div id="codeMsg" aria-live="polite">
+              <p class="line error hidden" id="errorLine"></p>
+              <p class="line" id="resendLine">Didn’t get the code? <strong>Resend in <span id="timer">0:24</span></strong></p>
+              <p class="line status hidden" id="statusLine">Verifying your code…</p>
+            </div>
+            <div class="resend hidden" id="resendBox">
+              <button class="btn btn-outline" id="resendSms" type="button">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H9l-4.2 3.4A.5.5 0 0 1 4 19V5.5Z" fill="currentColor"/><path d="M8 8.5h8M8 11.5h5" stroke="var(--outline-bg)" stroke-width="1.6" stroke-linecap="round"/></svg>
+                Resend via SMS
+              </button>
+              <button class="btn btn-outline" id="resendWa" type="button">
+                <span class="wa-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.6-1.2A9 9 0 1 0 12 3Z" fill="#fff"/><path d="M9 8.2c.2-.4.4-.4.6-.4h.5c.2 0 .4 0 .5.4l.7 1.6c.1.2 0 .4-.1.6l-.5.6c-.1.1-.2.3 0 .5.4.7 1 1.4 1.8 1.9.3.2.6.3.8.4.2.1.4 0 .5-.1l.6-.7c.2-.2.4-.2.6-.1l1.5.7c.2.1.4.2.4.4 0 .5-.2 1.1-.6 1.4-.5.4-1.2.6-2 .4-1.8-.5-3.4-1.8-4.4-3.4-.6-1-.8-2.2-.3-3.1Z" fill="#25D366"/></svg></span>
+                Send via WhatsApp
+              </button>
+            </div>
+          </div>
+          <div class="verify-wrap" style="width:100%">
+            <button class="btn btn-primary verify" id="verifyBtn" type="button" disabled>Verify</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status">
+  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#4ADE80"/><path d="m7 12.5 3.2 3.2L17 9" stroke="#0E0F0C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="toastText">Signed in as +91 98765 43210</span>
+</div>
+
+<script>
+(() => {
+  // Prototype only: the correct OTP.
+  const DEMO_CODE = "1111";
+  const RESEND_SECONDS = 24;
+
+  const $ = id => document.getElementById(id);
+  const overlay = $("overlay"), stepPhone = $("stepPhone"), stepOtp = $("stepOtp");
+  const wrap = document.querySelector(".dialog-wrap"), dialog = document.querySelector(".dialog");
+  const phone = $("phone"), continueBtn = $("continueBtn");
+  const code = $("code"), codeBox = $("codeBox"), verifyBtn = $("verifyBtn");
+  const errorLine = $("errorLine"), resendLine = $("resendLine"), statusLine = $("statusLine"), resendBox = $("resendBox");
+  const isPhone = () => matchMedia("(max-width: 767px), (max-height: 500px) and (orientation: landscape)").matches;
+  const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const wait = ms => new Promise(r => setTimeout(r, reduced() ? 0 : ms));
+  let attemptsLeft = 3, timerId = null, carouselId = null, busy = false, lastFocus = null, closing = false;
+
+  // ---- open / close (animated both ways) ----
+  // lock the page behind the popup / sheet (position:fixed is what stops iOS Safari scrolling it)
+  let lockedY = 0;
+  function lockScroll() {
+    lockedY = window.scrollY || 0;
+    document.body.style.top = -lockedY + "px";
+    document.documentElement.classList.add("locked");
+  }
+  function unlockScroll() {
+    document.documentElement.classList.remove("locked");
+    document.body.style.top = "";
+    window.scrollTo(0, lockedY);
+  }
+
+  function open() {
+    if (overlay.classList.contains("open")) return;
+    lastFocus = document.activeElement;
+    overlay.classList.remove("closing");
+    overlay.style.removeProperty("--drag");
+    wrap.style.transform = "";
+    lockScroll();
+    overlay.classList.add("open");
+    showPhone({ enter: false });
+    startCarousel();
+    fit();
+  }
+  async function close() {
+    if (!overlay.classList.contains("open") || closing) return;
+    closing = true;
+    closeMenu(false);
+    stopTimer(); stopCarousel(); stopWebOtp();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // drop the keyboard first
+    overlay.classList.add("closing");
+    await wait(240);
+    overlay.classList.remove("open", "closing", "otp");
+    overlay.style.removeProperty("--drag");
+    wrap.style.transform = "";
+    unlockScroll();
+    closing = false;
+    fit();                                   // clear the keyboard offset
+    lastFocus && lastFocus.focus({ preventScroll: true });
+  }
+
+  // ---- theme: system by default; the live site's display button toggles and remembers it ----
+  function applyTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    document.querySelectorAll("img[data-dark]").forEach(img => {
+      const src = t === "dark" ? img.dataset.dark : img.dataset.light;
+      if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    });
+  }
+  applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+  $("themeBtn").addEventListener("click", () => {
+    const t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    try { localStorage.setItem("save8-theme", t); } catch (e) {}
+    applyTheme(t);
+  });
+  if (window.matchMedia) {
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    const follow = e => {
+      let saved = null; try { saved = localStorage.getItem("save8-theme"); } catch (_) {}
+      if (!saved && !new URLSearchParams(location.search).get("theme")) applyTheme(e.matches ? "dark" : "light");
+    };
+    mq.addEventListener ? mq.addEventListener("change", follow) : mq.addListener(follow);   // older Safari
+  }
+  $("loginBtn").addEventListener("click", open);
+  $("closeBtn").addEventListener("click", close);
+  overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
+  document.addEventListener("keydown", e => {
+    if (!overlay.classList.contains("open")) return;
+    if (e.key === "Escape") { if (menuOpen()) closeMenu(); else close(); }   // Esc closes the dropdown first
+    if (e.key === "Tab") trapFocus(e);
+  });
+  function trapFocus(e) {   // keep Tab inside the popup / sheet
+    const items = [...wrap.querySelectorAll("button, input")].filter(el => !el.disabled && el.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  // ---- step change: old content slides out, the phone sheet resizes, new content staggers in ----
+  const EASE = "cubic-bezier(.2,.8,.2,1)";
+  let switching = false;
+  async function switchStep(toOtp, reverse) {
+    const leaving = toOtp ? stepPhone : stepOtp, shown = toOtp ? stepOtp : stepPhone;
+    const dir = reverse ? 1 : -1;
+    const animate = !reduced();
+    switching = true;
+    if (animate && !leaving.classList.contains("hidden")) {
+      await leaving.animate(
+        [{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateX(${dir * 28}px)` }],
+        { duration: 170, easing: "ease-in", fill: "forwards" }).finished;
+    }
+    const from = dialog.getBoundingClientRect().height;
+    leaving.getAnimations().forEach(a => a.cancel());
+    overlay.classList.toggle("otp", toOtp);
+    leaving.classList.add("hidden");
+    shown.classList.remove("hidden", "step-enter", "reverse");
+    if (animate) {
+      if (isPhone()) {   // the sheet grows to the tall OTP sheet (or shrinks back)
+        const to = dialog.getBoundingClientRect().height;
+        dialog.style.overflow = "hidden";
+        dialog.animate([{ height: from + "px" }, { height: to + "px" }], { duration: 360, easing: EASE })
+          .finished.then(() => { dialog.style.overflow = ""; });
+      }
+      // stagger the new step's pieces in
+      const pieces = [...shown.querySelectorAll(":scope > .back, .col > *")].filter(el => el.offsetParent !== null);
+      pieces.forEach((el, i) => el.animate(
+        [{ opacity: 0, transform: `translate(${-dir * 18}px, 6px)` }, { opacity: 1, transform: "none" }],
+        { duration: 300, delay: 90 + i * 45, easing: EASE, fill: "backwards" }));
+    }
+    switching = false;
+  }
+
+  // ---- country codes (flags drawn inline: Windows can't show emoji flags) ----
+  const F = {
+    IN: '<rect width="22" height="5.33" fill="#FF9933"/><rect y="5.33" width="22" height="5.34" fill="#fff"/><rect y="10.67" width="22" height="5.33" fill="#138808"/><circle cx="11" cy="8" r="2" fill="none" stroke="#000080" stroke-width=".6"/>',
+    AE: '<rect width="22" height="16" fill="#fff"/><rect width="22" height="5.33" fill="#00732F"/><rect y="10.67" width="22" height="5.33" fill="#000"/><rect width="6" height="16" fill="#FF0000"/>',
+    US: '<rect width="22" height="16" fill="#fff"/>' + [0,2,4,6,8,10,12].map(i => `<rect y="${i*1.23}" width="22" height="1.23" fill="#B22234"/>`).join("") + '<rect width="9.5" height="8.6" fill="#3C3B6E"/>',
+    GB: '<rect width="22" height="16" fill="#012169"/><path d="M0 0l22 16M22 0 0 16" stroke="#fff" stroke-width="3"/><path d="M0 0l22 16M22 0 0 16" stroke="#C8102E" stroke-width="1.2"/><path d="M11 0v16M0 8h22" stroke="#fff" stroke-width="5"/><path d="M11 0v16M0 8h22" stroke="#C8102E" stroke-width="3"/>',
+    SG: '<rect width="22" height="8" fill="#EF3340"/><rect y="8" width="22" height="8" fill="#fff"/><circle cx="5" cy="4" r="2.4" fill="#fff"/><circle cx="6" cy="4" r="2.2" fill="#EF3340"/>',
+    SA: '<rect width="22" height="16" fill="#006C35"/><rect x="5" y="10" width="12" height="1" fill="#fff"/><rect x="6" y="5" width="10" height="2" rx="1" fill="#fff" opacity=".85"/>',
+    CA: '<rect width="22" height="16" fill="#fff"/><rect width="5.5" height="16" fill="#D80621"/><rect x="16.5" width="5.5" height="16" fill="#D80621"/><path d="M11 4l1.2 2.4 1.8-.6-.6 2.6 1.4.8-2.6 1 .3 1.8H10.5l.3-1.8-2.6-1 1.4-.8-.6-2.6 1.8.6z" fill="#D80621"/>',
+    AU: '<rect width="22" height="16" fill="#012169"/><path d="M0 0l11 8M11 0 0 8" stroke="#fff" stroke-width="1.6"/><path d="M5.5 0v8M0 4h11" stroke="#fff" stroke-width="2.4"/><path d="M5.5 0v8M0 4h11" stroke="#C8102E" stroke-width="1.2"/><circle cx="16.5" cy="11" r="1.3" fill="#fff"/><circle cx="5.5" cy="12.5" r="1.6" fill="#fff"/>',
+    NP: '<rect width="22" height="16" fill="#fff"/><path d="M6 1.5v13l9-6.5-6.5-.5L15 1.5z" fill="#DC143C" stroke="#003893" stroke-width=".8"/>',
+    BD: '<rect width="22" height="16" fill="#006A4E"/><circle cx="10" cy="8" r="4.2" fill="#F42A41"/>',
+    QA: '<rect width="22" height="16" fill="#8A1538"/><path d="M0 0h7l-1.5 1 1.5 1-1.5 1 1.5 1-1.5 1 1.5 1-1.5 1 1.5 1-1.5 1 1.5 1-1.5 1 1.5 1-1.5 1 1.5 1-1.5 1 1.5 1H0z" fill="#fff"/>',
+    KW: '<rect width="22" height="5.33" fill="#007A3D"/><rect y="5.33" width="22" height="5.34" fill="#fff"/><rect y="10.67" width="22" height="5.33" fill="#CE1126"/><path d="M0 0l6 5.33v5.34L0 16z" fill="#000"/>',
+  };
+  const COUNTRIES = [
+    { iso: "IN", name: "India", code: "+91", len: [10, 10] },
+    { iso: "AE", name: "United Arab Emirates", code: "+971", len: [8, 9] },
+    { iso: "US", name: "United States", code: "+1", len: [10, 10] },
+    { iso: "GB", name: "United Kingdom", code: "+44", len: [10, 10] },
+    { iso: "SG", name: "Singapore", code: "+65", len: [8, 8] },
+    { iso: "SA", name: "Saudi Arabia", code: "+966", len: [9, 9] },
+    { iso: "CA", name: "Canada", code: "+1", len: [10, 10] },
+    { iso: "AU", name: "Australia", code: "+61", len: [9, 9] },
+    { iso: "QA", name: "Qatar", code: "+974", len: [8, 8] },
+    { iso: "KW", name: "Kuwait", code: "+965", len: [8, 8] },
+    { iso: "NP", name: "Nepal", code: "+977", len: [10, 10] },
+    { iso: "BD", name: "Bangladesh", code: "+880", len: [10, 10] },
+  ];
+  const flagSvg = iso => `<svg viewBox="0 0 22 16" aria-hidden="true">${F[iso]}</svg>`;
+  let country = COUNTRIES[0];
+  const ccBtn = $("ccBtn"), ccMenu = $("ccMenu"), ccList = $("ccList"), ccSearch = $("ccSearch"), ccEmpty = $("ccEmpty");
+  const phoneField = $("phoneField");
+  let hl = 0, shown = COUNTRIES;
+  $("ccFlag").innerHTML = flagSvg(country.iso);
+
+  function renderList(q = "") {
+    const s = q.trim().toLowerCase().replace(/^\+/, "");
+    shown = COUNTRIES.filter(c => !s || c.name.toLowerCase().includes(s) || c.code.slice(1).startsWith(s));
+    ccList.innerHTML = shown.map((c, i) => `
+      <li role="option" id="cc-${i}" data-i="${i}" aria-selected="${c === country}">
+        <span class="flag">${flagSvg(c.iso)}</span><span class="cc-name">${c.name}</span><span class="cc-dial">${c.code}</span>
+        <svg class="tick" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7" stroke="#007A45" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </li>`).join("");
+    ccEmpty.classList.toggle("hidden", shown.length > 0);
+    highlight(Math.max(0, shown.indexOf(country)));
+  }
+  function highlight(i) {
+    hl = Math.max(0, Math.min(shown.length - 1, i));
+    [...ccList.children].forEach((li, k) => li.classList.toggle("hl", k === hl));
+    const li = ccList.children[hl];
+    if (li) { li.scrollIntoView({ block: "nearest" }); ccSearch.setAttribute("aria-activedescendant", li.id); }
+  }
+  const menuOpen = () => !ccMenu.hidden;
+  // open the list on whichever side of the field has room, and cap its height to that room
+  function placeMenu() {
+    const vv = window.visualViewport;
+    const visTop = vv ? vv.offsetTop : 0, visBottom = visTop + (vv ? vv.height : window.innerHeight);
+    const f = phoneField.getBoundingClientRect();
+    const below = visBottom - f.bottom - 16, above = f.top - visTop - 16;
+    const chrome = 8 + 16 + 46;                       // gap + menu padding + search row
+    const up = document.documentElement.classList.contains("short") ? false
+             : isPhone() ? above >= 180 || above > below : below < 260 && above > below;
+    ccMenu.classList.toggle("up", up); ccMenu.classList.toggle("down", !up);
+    ccList.style.maxHeight = Math.max(88, Math.min(232, (up ? above : below) - chrome)) + "px";
+  }
+  function openMenu() {
+    ccMenu.hidden = false; ccBtn.setAttribute("aria-expanded", "true");
+    ccSearch.value = ""; renderList(); placeMenu();
+    if (!isPhone()) ccSearch.focus();   // on phones, don't pop the keyboard just to show the list
+  }
+  function closeMenu(focusInput = true) {
+    if (!menuOpen()) return;
+    ccMenu.hidden = true; ccBtn.setAttribute("aria-expanded", "false");
+    if (focusInput) phone.focus();
+  }
+  function pick(c) {
+    country = c;
+    $("ccFlag").innerHTML = flagSvg(c.iso);
+    $("ccCode").textContent = c.code;
+    ccBtn.setAttribute("aria-label", `Country code: ${c.name} ${c.code}`);
+    picking = true;                              // re-check the number for the new country without losing digits
+    phone.dispatchEvent(new Event("input"));
+    picking = false;
+    closeMenu();
+  }
+  ccBtn.addEventListener("click", e => { e.stopPropagation(); menuOpen() ? closeMenu() : openMenu(); });
+  ccSearch.addEventListener("input", () => renderList(ccSearch.value));
+  ccSearch.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown") { e.preventDefault(); highlight(hl + 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); highlight(hl - 1); }
+    else if (e.key === "Enter") { e.preventDefault(); if (shown[hl]) pick(shown[hl]); }
+  });
+  ccList.addEventListener("click", e => { const li = e.target.closest("li"); if (li) pick(shown[+li.dataset.i]); });
+  ccList.addEventListener("mousemove", e => { const li = e.target.closest("li"); if (li && +li.dataset.i !== hl) highlight(+li.dataset.i); });
+  phoneField.addEventListener("click", e => { if (!e.target.closest(".cc-btn, .cc-menu")) phone.focus(); });
+  document.addEventListener("pointerdown", e => { if (menuOpen() && !e.target.closest(".cc-menu, .cc-btn")) closeMenu(false); });
+
+  // ---- step 1: phone ----
+  // `typed` keeps what the user entered, so switching to a shorter country and back doesn't drop digits
+  let typed = "", picking = false;
+  const pretty = d => country.iso === "IN" && d.length > 5 ? d.slice(0, 5) + " " + d.slice(5) : d;
+  phone.addEventListener("input", () => {
+    if (!picking) typed = phone.value.replace(/\D/g, "").slice(0, 15);
+    const d = typed.slice(0, country.len[1]);
+    if (!picking) typed = d;                     // can't type past the active country's length
+    phone.value = pretty(d);
+    continueBtn.disabled = d.length < country.len[0] || d.length > country.len[1];
+  });
+  $("phoneForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (continueBtn.disabled || continueBtn.classList.contains("loading") || switching) return;
+    // 1) "Continue" crossfades into a spinner and the field locks while the code is sent
+    const field = phone.closest(".phone");
+    continueBtn.classList.add("loading");
+    continueBtn.setAttribute("aria-busy", "true");
+    field.classList.add("sending");
+    phone.blur();
+    await wait(850);
+    $("sentTo").textContent = country.code + " " + phone.value;
+    // 2) slide to the OTP step, then reset the sign-in step for next time
+    await showOtp();
+    continueBtn.classList.remove("loading");
+    continueBtn.removeAttribute("aria-busy");
+    field.classList.remove("sending");
+  });
+  async function showPhone({ enter = true } = {}) {
+    if (switching) return;
+    stopTimer(); stopWebOtp();
+    if (enter) await switchStep(false, true);
+    else { overlay.classList.remove("otp"); stepOtp.classList.add("hidden"); stepPhone.classList.remove("hidden"); }
+    // on phones the sheet opens without the keyboard (tap the field to type), as in the Figma flow
+    if (enter || !isPhone()) setTimeout(() => phone.focus({ preventScroll: true }), 60);
+  }
+
+  // ---- step 2: OTP ----
+  async function showOtp() {
+    attemptsLeft = 3;
+    resetCode();
+    await switchStep(true, false);
+    startTimer();
+    startWebOtp();
+    setTimeout(() => code.focus({ preventScroll: true }), 250);
+  }
+  function resetCode() {
+    code.value = ""; code.disabled = false; busy = false;
+    codeBox.className = "code focus";
+    errorLine.classList.add("hidden");
+    statusLine.classList.add("hidden");
+    verifyBtn.disabled = true;
+  }
+  $("backBtn").addEventListener("click", () => showPhone());
+  $("editBtn").addEventListener("click", () => showPhone());
+  code.addEventListener("keydown", e => { if (e.key === "Enter") verify(); });
+
+  code.addEventListener("input", () => {
+    code.value = code.value.replace(/\D/g, "").slice(0, 4);
+    if (codeBox.classList.contains("err")) { codeBox.className = "code focus"; errorLine.classList.add("hidden"); }
+    verifyBtn.disabled = code.value.length !== 4;
+    if (code.value.length === 4) verify();   // auto-submit on the 4th digit, as in the app flow
+  });
+  code.addEventListener("focus", () => { if (!codeBox.classList.contains("err") && !busy) codeBox.classList.add("focus"); });
+  verifyBtn.addEventListener("click", verify);
+
+  function verify() {
+    if (busy || code.value.length !== 4) return;
+    busy = true;
+    code.disabled = true;
+    codeBox.className = "code focus verifying";
+    errorLine.classList.add("hidden");
+    statusLine.textContent = "Verifying your code…";
+    statusLine.style.color = ""; statusLine.classList.remove("hidden");
+    verifyBtn.disabled = true;
+    setTimeout(() => (code.value === DEMO_CODE ? success() : fail()), 1200);
+  }
+  function success() {
+    codeBox.className = "code ok";
+    statusLine.classList.add("hidden");
+    verifyBtn.disabled = false;
+    stopTimer();
+    setTimeout(async () => {
+      await close();
+      document.body.classList.add("signed-in");
+      $("toastText").textContent = "Signed in as " + $("sentTo").textContent;
+      const t = $("toast"); t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3200);
+    }, 700);
+  }
+  function shake() {
+    if (!reduced()) codeBox.animate(
+      [{ transform: "none" }, { transform: "translateX(-8px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-6px)" },
+       { transform: "translateX(6px)" }, { transform: "translateX(-3px)" }, { transform: "none" }],
+      { duration: 380, easing: "ease-out" });
+    if (navigator.vibrate) navigator.vibrate(60);
+  }
+  function fail() {
+    attemptsLeft -= 1;
+    busy = false;
+    code.disabled = false;
+    statusLine.classList.add("hidden");
+    if (attemptsLeft <= 0) {            // out of attempts: offer a new code instead
+      resetCode(); stopTimer(); showResendOptions(); return;
+    }
+    codeBox.className = "code err";
+    shake();
+    errorLine.textContent = `Incorrect code. ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left.`;
+    errorLine.classList.remove("hidden");
+    verifyBtn.disabled = false;
+    code.focus(); code.select();
+  }
+
+  // ---- resend timer ----
+  function startTimer() {
+    stopTimer();
+    let s = RESEND_SECONDS;
+    resendBox.classList.add("hidden");
+    resendLine.classList.remove("prompt");
+    resendLine.innerHTML = 'Didn’t get the code? <strong>Resend in <span id="timer">0:' + String(s).padStart(2, "0") + '</span></strong>';
+    resendLine.classList.remove("hidden");
+    timerId = setInterval(() => {
+      s -= 1;
+      const t = document.getElementById("timer");
+      if (t) t.textContent = "0:" + String(s).padStart(2, "0");
+      if (s <= 0) { stopTimer(); showResendOptions(); }
+    }, 1000);
+  }
+  function stopTimer() { clearInterval(timerId); timerId = null; }
+  function showResendOptions() {
+    resendLine.textContent = "Didn’t get the code?";
+    resendLine.classList.add("prompt");
+    resendLine.classList.remove("hidden");
+    resendBox.classList.remove("hidden");
+  }
+  function resend() { attemptsLeft = 3; resetCode(); startTimer(); code.focus(); }
+  $("resendSms").addEventListener("click", resend);
+  $("resendWa").addEventListener("click", resend);
+
+  // ---- welcome carousel: swipe / drag track with a seamless loop ----
+  const viewport = document.querySelector(".slides"), track = document.querySelector(".track");
+  const realSlides = [...track.children], N = realSlides.length;
+  track.appendChild(realSlides[0].cloneNode(true));          // clone of slide 1 so 3 → 1 keeps moving forward
+  const allSlides = [...track.children];
+  const dots = [...document.querySelectorAll(".dots button")];
+  let current = 0;                                            // 0..N (N = the clone)
+  const setX = (px, animate) => { track.classList.toggle("no-anim", !animate || reduced()); track.style.transform = `translateX(${px}px)`; };
+  function go(i, animate = true) {
+    current = Math.max(0, Math.min(N, i));
+    setX(-current * viewport.clientWidth, animate);
+    const real = current % N;
+    allSlides.forEach((s, k) => s.classList.toggle("active", k === current || (current === N && k === 0)));
+    dots.forEach((d, k) => d.classList.toggle("active", k === real));
+  }
+  track.addEventListener("transitionend", e => {
+    if (e.target === track && current === N) go(0, false);   // landed on the clone: jump back to the real slide 1
+  });
+  function startCarousel() {
+    stopCarousel(); go(0, false);
+    if (!reduced()) carouselId = setInterval(() => { if (!sDrag) go(current + 1); }, 3500);
+  }
+  function stopCarousel() { clearInterval(carouselId); }
+  function restartAutoplay() { stopCarousel(); if (!reduced()) carouselId = setInterval(() => { if (!sDrag) go(current + 1); }, 3500); }
+  dots.forEach((d, k) => d.addEventListener("click", () => { go(k); restartAutoplay(); }));
+
+  let sDrag = null;
+  viewport.addEventListener("pointerdown", e => {
+    if (current === N) go(0, false);
+    sDrag = { x0: e.clientX, dx: 0, lastX: e.clientX, lastT: performance.now(), v: 0, w: viewport.clientWidth };
+    try { viewport.setPointerCapture(e.pointerId); } catch (_) {}
+    viewport.classList.add("dragging");
+    stopCarousel();
+  });
+  viewport.addEventListener("pointermove", e => {
+    if (!sDrag) return;
+    let dx = e.clientX - sDrag.x0;
+    if (current === 0 && dx > 0) dx /= 3;                     // rubber band before slide 1
+    const now = performance.now();
+    sDrag.v = (e.clientX - sDrag.lastX) / Math.max(1, now - sDrag.lastT);
+    sDrag.lastX = e.clientX; sDrag.lastT = now; sDrag.dx = dx;
+    setX(-current * sDrag.w + dx, false);
+  });
+  const endSwipe = () => {
+    if (!sDrag) return;
+    const { dx, v, w } = sDrag; sDrag = null;
+    viewport.classList.remove("dragging");
+    const flick = Math.abs(v) > .45 && Math.abs(dx) > 12;
+    if ((dx < -w * .18 || (flick && v < 0))) go(current + 1);          // next (slide 3 → clone → loops to 1)
+    else if ((dx > w * .18 || (flick && v > 0)) && current > 0) go(current - 1);
+    else go(current);                                                  // spring back
+    restartAutoplay();
+  };
+  viewport.addEventListener("pointerup", endSwipe);
+  viewport.addEventListener("pointercancel", endSwipe);
+  window.addEventListener("resize", () => go(current, false));
+
+  // ---- phone: drag the sheet down to dismiss ----
+  let drag = null;
+  dialog.addEventListener("pointerdown", e => {
+    if (!isPhone() || closing || e.target.closest("input, button, .cc-menu")) return;
+    drag = { y0: e.clientY, dy: 0, lastY: e.clientY, lastT: performance.now(), v: 0 };
+    try { dialog.setPointerCapture(e.pointerId); } catch (_) {}
+    wrap.classList.remove("settle");
+  });
+  dialog.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const raw = e.clientY - drag.y0;
+    drag.dy = raw > 0 ? raw : raw / 6;                       // a little resistance when pulled up
+    const now = performance.now();
+    drag.v = (e.clientY - drag.lastY) / Math.max(1, now - drag.lastT);
+    drag.lastY = e.clientY; drag.lastT = now;
+    wrap.style.transform = `translateY(${drag.dy}px)`;
+    overlay.style.setProperty("--drag", String(Math.max(0, 1 - Math.max(0, drag.dy) / 420)));
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    const { dy, v } = drag; drag = null;
+    if (dy > 110 || (v > 0.5 && dy > 24)) { close(); return; }
+    wrap.classList.add("settle");                            // spring back
+    wrap.style.transform = "";
+    overlay.style.removeProperty("--drag");
+    setTimeout(() => wrap.classList.remove("settle"), 300);
+  };
+  dialog.addEventListener("pointerup", endDrag);
+  dialog.addEventListener("pointercancel", endDrag);
+
+  // ---- phone: size the overlay to the *visible* viewport so the on-screen keyboard never covers the sheet ----
+  // iOS Safari and Android Chrome both shrink visualViewport (not the layout viewport) when the keyboard opens.
+  const root = document.documentElement;
+  // Keyboard detection works whether the browser shrinks only the visual viewport (iOS Safari, Chrome)
+  // or the whole layout viewport (Samsung Internet, Firefox, some WebViews): compare against the tallest
+  // height seen for the current width while an input has focus.
+  const tallest = {};
+  const sheetOpen = () => overlay.classList.contains("open") && isPhone();
+  // iOS Safari (and some Android browsers) pan the whole page up to reveal a focused input near the bottom.
+  // That pan is what made the screen "shift"; undo it while the sheet is open.
+  const unpan = () => {
+    if (!sheetOpen()) return;
+    const vv = window.visualViewport;
+    if (window.scrollY !== 0 || (vv && vv.offsetTop > 0)) window.scrollTo(0, 0);
+  };
+  const fit = () => {
+    unpan();
+    const vv = window.visualViewport;
+    const h = vv ? vv.height : window.innerHeight;
+    const w = Math.round(window.innerWidth);
+    tallest[w] = Math.max(tallest[w] || 0, h, window.innerHeight);
+    root.style.setProperty("--vvh", h + "px");
+    // keyboard height = part of the layout viewport hidden under the keyboard (0 when the browser resizes the layout instead)
+    const kbH = sheetOpen() ? Math.max(0, Math.round(window.innerHeight - h - (vv ? vv.offsetTop : 0))) : 0;
+    root.style.setProperty("--kb", (kbH > 60 ? kbH : 0) + "px");
+    const typing = document.activeElement && document.activeElement.tagName === "INPUT";
+    const kbOpen = isPhone() && typing && (h < tallest[w] * 0.85 || window.innerHeight - h > 120);
+    root.classList.toggle("kb", !!kbOpen);
+    // compact mode only for landscape phones or really tiny heights, so portrait phones don't reflow when the keyboard opens
+    root.classList.toggle("short", isPhone() && (h < 360 || (window.innerWidth > window.innerHeight && h < 520)));
+    if (menuOpen && menuOpen()) placeMenu();
+  };
+  fit();
+  if (window.visualViewport) {
+    visualViewport.addEventListener("resize", fit);
+    visualViewport.addEventListener("scroll", fit);
+  }
+  window.addEventListener("resize", fit);
+  window.addEventListener("orientationchange", () => setTimeout(fit, 250));
+  // on focus, cancel the pan immediately and again as the keyboard finishes animating (iOS pans in steps)
+  document.addEventListener("focusin", () => { unpan(); [50, 150, 300, 500].forEach(t => setTimeout(fit, t)); });
+  document.addEventListener("focusout", () => setTimeout(fit, 300));
+  window.addEventListener("scroll", unpan, { passive: true });
+
+  // field focus ring without :has() (older Safari / Firefox)
+  phone.addEventListener("focus", () => phoneField.classList.add("focused"));
+  phone.addEventListener("blur", () => phoneField.classList.remove("focused"));
+
+  // ---- Android Chrome: read the SMS code automatically (WebOTP); iOS uses autocomplete="one-time-code" ----
+  let otpAbort = null;
+  function startWebOtp() {
+    if (!("OTPCredential" in window) || !navigator.credentials) return;
+    stopWebOtp();
+    otpAbort = new AbortController();
+    navigator.credentials.get({ otp: { transport: ["sms"] }, signal: otpAbort.signal })
+      .then(cred => { if (cred && cred.code && !stepOtp.classList.contains("hidden")) { code.value = cred.code.slice(0, 4); code.dispatchEvent(new Event("input")); } })
+      .catch(() => {});
+  }
+  function stopWebOtp() { if (otpAbort) { otpAbort.abort(); otpAbort = null; } }
+
+  console.info("Save8 login prototype: use OTP 1111 to sign in; any other code shows the incorrect-code state.");
+})();
+</script>
+</body>
+</html>
