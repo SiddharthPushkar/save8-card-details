@@ -56,7 +56,7 @@ a{color:inherit;text-decoration:none}
 .stick.collapsed{box-shadow:0 4px 12px -6px rgba(60,48,20,.22)}
 .hero{position:relative;overflow:hidden}
 .hero-in{display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 16px 20px;text-align:center}
-.hero .card-art,.hero h1,.hero .issuer,.hero .meta{will-change:transform}
+.hero .card-art,.hero h1,.hero .issuer,.hero .meta{will-change:transform;backface-visibility:hidden}
 .hero h1,.hero .issuer{display:inline-block;transform-origin:0 0;white-space:nowrap}
 /* Close floats on the dimmed strip above the sheet */
 .close{position:absolute;right:12px;top:20px;z-index:3;width:36px;height:36px;border-radius:99px;background:#fff;display:grid;place-items:center;color:var(--ink)}
@@ -409,6 +409,7 @@ details[open] summary svg{transform:rotate(180deg)}
   // (that band is all that stays visible once .stick pins): art 64×40 at (16, 13),
   // title at x 96 (90%, or smaller if it would not fit), issuer under it.
   function measure() {
+    hero.classList.remove('sda');
     [art, nameEl, iss, meta].forEach(e => { e.style.transform = ''; e.style.opacity = ''; });
     const h = hero.getBoundingClientRect(), rel = el => { const r = el.getBoundingClientRect(); return {x: r.left - h.left, y: r.top - h.top, w: r.width, h: r.height}; };
     const a = rel(art), n = rel(nameEl), i = rel(iss);
@@ -422,23 +423,55 @@ details[open] summary svg{transform:rotate(180deg)}
     };
     // every tab must be able to scroll far enough to stay collapsed
     main.style.minHeight = (sheet.clientHeight - BAND - tabBar.offsetHeight) + 'px';
+    if (SDA) buildScrollAnimations();
     update();
   }
 
-  // Header progress follows the scroll exactly: 0 = expanded, 1 = collapsed.
+  // Header progress: 0 = expanded, 1 = collapsed (scroll 0 → D).
   // Paths are curved so the card never crosses the title: the card goes left and
   // shrinks early, then drops into place late (p^1.5: late enough to clear the title,
   // early enough to stay below the handle bar); the title moves early, so it is clear before the card arrives.
   const early = t => 1 - (1 - t) * (1 - t);
+  function frame(p) {
+    const e = early(p), c = Math.min(1, p * 3);   // chips fade out over the first third
+    return {
+      art: `translate(${(g.a.dx * e).toFixed(2)}px,${(g.a.dy * Math.pow(p, 1.5)).toFixed(2)}px) scale(${(1 + (g.a.s - 1) * e).toFixed(4)})`,
+      name: `translate(${(g.n.dx * e).toFixed(2)}px,${(g.n.dy * e).toFixed(2)}px) scale(${(1 + (g.n.s - 1) * p).toFixed(4)})`,
+      iss: `translate(${(g.i.dx * e).toFixed(2)}px,${(g.i.dy * e).toFixed(2)}px)`,
+      metaT: `translateY(${(16 * c).toFixed(2)}px)`, metaO: (1 - c).toFixed(3),
+    };
+  }
+
+  // Where supported, the browser drives the motion straight from the scroll position
+  // (scroll-driven animations run in step with scrolling, so nothing lags or shakes).
+  // The curves are baked into keyframes every 4%. Elsewhere, JS applies frame() per rAF.
+  const SDA = CSS.supports('animation-timeline: scroll()');
+  const animCss = document.head.appendChild(document.createElement('style'));
+  function buildScrollAnimations() {
+    const k = {art: '', name: '', iss: '', meta: ''};
+    for (let s = 0; s <= 25; s++) {
+      const f = frame(s / 25), at = (s * 4) + '%';
+      k.art += `${at}{transform:${f.art}}`;
+      k.name += `${at}{transform:${f.name}}`;
+      k.iss += `${at}{transform:${f.iss}}`;
+      k.meta += `${at}{transform:${f.metaT};opacity:${f.metaO}}`;
+    }
+    const use = (sel, name) => `.hero.sda ${sel}{animation:${name} linear both;animation-timeline:--sheet;animation-range:0px ${D}px}`;
+    animCss.textContent =
+      `.sheet-scroll{scroll-timeline:--sheet block}` +
+      `@keyframes cc-art{${k.art}}@keyframes cc-name{${k.name}}@keyframes cc-iss{${k.iss}}@keyframes cc-meta{${k.meta}}` +
+      use('.card-art', 'cc-art') + use('h1', 'cc-name') + use('.issuer', 'cc-iss') + use('.meta', 'cc-meta');
+    hero.classList.add('sda');
+  }
+
   function update() {
     ticking = false;
-    const p = Math.min(1, Math.max(0, sheet.scrollTop / D)), e = early(p);
-    art.style.transform = `translate(${g.a.dx * e}px,${g.a.dy * Math.pow(p, 1.5)}px) scale(${1 + (g.a.s - 1) * e})`;
-    nameEl.style.transform = `translate(${g.n.dx * e}px,${g.n.dy * e}px) scale(${1 + (g.n.s - 1) * p})`;
-    iss.style.transform = `translate(${g.i.dx * e}px,${g.i.dy * e}px)`;
-    const c = Math.min(1, p * 3);         // chips fade out over the first third
-    meta.style.opacity = 1 - c;
-    meta.style.transform = `translateY(${16 * c}px)`;
+    const p = Math.min(1, Math.max(0, sheet.scrollTop / D));
+    if (!SDA) {
+      const f = frame(p);
+      art.style.transform = f.art; nameEl.style.transform = f.name; iss.style.transform = f.iss;
+      meta.style.transform = f.metaT; meta.style.opacity = f.metaO;
+    }
     stick.classList.toggle('collapsed', p >= 1);
   }
 
