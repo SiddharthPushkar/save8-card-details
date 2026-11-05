@@ -502,15 +502,17 @@ details[open] summary svg{transform:rotate(180deg)}
   // the two states (no scroll snap support, or an engine that did not re-snap, e.g. a
   // programmatic scroll cut short), finish the move the way the user was going.
   const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (IOS) document.documentElement.classList.add('no-snap');
-  const NATIVE_SNAP = !IOS && CSS.supports('scroll-snap-type', 'y mandatory');
+  // Native scroll snap resolves a small pull to the nearer end (so it springs back). We want a small
+  // pull to commit, so the snap is done in JS everywhere (direction-aware, see snap()).
+  document.documentElement.classList.add('no-snap');
+  const NATIVE_SNAP = false;
   let snapTimer, anim = 0, idleY = 0, moving = false, snapping = false, touching = false;
   const out = t => 1 - Math.pow(1 - t, 4);               // fast start, soft landing
   function goTo(target) {
     const from = sheet.scrollTop, dist = target - from;
     if (Math.abs(dist) < 1) return;
     if (calm.matches) { sheet.scrollTop = target; return; }
-    const dur = Math.max(140, Math.min(260, Math.abs(dist) * 1.6)), t0 = performance.now();
+    const dur = Math.max(120, Math.min(210, Math.abs(dist) * 1.3)), t0 = performance.now();
     cancelAnimationFrame(anim); snapping = true;
     const step = now => {
       const k = Math.min(1, (now - t0) / dur);
@@ -523,9 +525,10 @@ details[open] summary svg{transform:rotate(180deg)}
     moving = false;
     const y = sheet.scrollTop;
     // never under a resting finger (no scrollend there, only the debounce), nor past D
-    if (snapping || touching || y <= .5 || y >= D - .5) return;
-    const dir = y - idleY;                                  // which way did they go?
-    const target = Math.abs(dir) > 6 ? (dir > 0 ? D : 0) : (y < D / 2 ? 0 : D);
+    if (snapping || touching) return;
+    if (y <= .5 || y >= D - .5) { idleY = y; return; }        // at rest in one of the two states: remember it
+    const dir = y - idleY;                                  // which way did they go from the last rest?
+    const target = Math.abs(dir) > 2 ? (dir > 0 ? D : 0) : (y < D / 2 ? 0 : D);   // even a small pull commits
     // with native snap, per-frame scrollTop writes would each get snapped to the nearest
     // end, so hand the move to the browser; target is a snap point, so it is kept
     if (NATIVE_SNAP) sheet.scrollTo({top: target, behavior: calm.matches ? 'instant' : 'smooth'});
@@ -533,8 +536,8 @@ details[open] summary svg{transform:rotate(180deg)}
   }
   const cancelSnap = () => { cancelAnimationFrame(anim); snapping = false; };
   sheet.addEventListener('touchstart', () => { touching = true; cancelSnap(); }, {passive: true});
-  // finger lifted: if no momentum follows there is no more scroll event, so schedule the snap here
-  sheet.addEventListener('touchend', e => { touching = e.touches.length > 0; if (!touching) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 120); } }, {passive: true});
+  // finger lifted: commit right away (a small pull is enough); this also cuts any leftover momentum short
+  sheet.addEventListener('touchend', e => { touching = e.touches.length > 0; if (!touching) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 0); } }, {passive: true});
   sheet.addEventListener('touchcancel', () => { touching = false; }, {passive: true});
   sheet.addEventListener('wheel', cancelSnap, {passive: true});
 
@@ -600,8 +603,8 @@ details[open] summary svg{transform:rotate(180deg)}
   const onScroll = () => {
     const y = sheet.scrollTop;
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    if (!moving && !snapping) { moving = true; idleY = lastY; }
-    if (!('onscrollend' in window) || IOS) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, IOS ? 100 : 90); }
+    moving = true;
+    clearTimeout(snapTimer); snapTimer = setTimeout(snap, 60);
   };
   sheet.addEventListener('scroll', () => { onScroll(); lastY = sheet.scrollTop; }, {passive: true});
   sheet.addEventListener('scrollend', snap);
