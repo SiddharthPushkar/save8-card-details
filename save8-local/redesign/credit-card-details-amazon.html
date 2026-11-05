@@ -54,6 +54,8 @@ a{color:inherit;text-decoration:none}
      past D it covers the whole viewport, which per spec makes every position inside it a
      valid resting point: the content scrolls freely, snapping only happens between 0 and D. */
 .sheet-scroll{scroll-snap-type:y mandatory}
+/* iOS / iPadOS Safari: native snap with a tall snap area pulls deep scrolls back and cuts scrolling short, so it is switched off there (JS snap below takes over) */
+.no-snap .sheet-scroll{scroll-snap-type:none}
 .sheet-scroll::before{content:'';position:absolute;top:0;left:0;width:1px;height:1px;scroll-snap-align:start;pointer-events:none}
 /* flex-basis auto: with main{flex:1} (basis 0) main stayed at its min-height and long tabs
    overflowed it, so the snap area was shorter than the content and deep scrolls got pulled back to D */
@@ -452,7 +454,9 @@ details[open] summary svg{transform:rotate(180deg)}
   // only a backstop: once scrolling has fully stopped, if the sheet still rests between
   // the two states (no scroll snap support, or an engine that did not re-snap, e.g. a
   // programmatic scroll cut short), finish the move the way the user was going.
-  const NATIVE_SNAP = CSS.supports('scroll-snap-type', 'y mandatory');
+  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (IOS) document.documentElement.classList.add('no-snap');
+  const NATIVE_SNAP = !IOS && CSS.supports('scroll-snap-type', 'y mandatory');
   let snapTimer, anim = 0, idleY = 0, moving = false, snapping = false, touching = false;
   const out = t => 1 - Math.pow(1 - t, 4);               // fast start, soft landing
   function goTo(target) {
@@ -482,7 +486,8 @@ details[open] summary svg{transform:rotate(180deg)}
   }
   const cancelSnap = () => { cancelAnimationFrame(anim); snapping = false; };
   sheet.addEventListener('touchstart', () => { touching = true; cancelSnap(); }, {passive: true});
-  sheet.addEventListener('touchend', e => { touching = e.touches.length > 0; }, {passive: true});
+  // finger lifted: if no momentum follows there is no more scroll event, so schedule the snap here
+  sheet.addEventListener('touchend', e => { touching = e.touches.length > 0; if (!touching) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 120); } }, {passive: true});
   sheet.addEventListener('touchcancel', () => { touching = false; }, {passive: true});
   sheet.addEventListener('wheel', cancelSnap, {passive: true});
 
@@ -549,7 +554,7 @@ details[open] summary svg{transform:rotate(180deg)}
     const y = sheet.scrollTop;
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
     if (!moving && !snapping) { moving = true; idleY = lastY; }
-    if (!('onscrollend' in window)) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 90); }
+    if (!('onscrollend' in window) || IOS) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, IOS ? 100 : 90); }
   };
   sheet.addEventListener('scroll', () => { onScroll(); lastY = sheet.scrollTop; }, {passive: true});
   sheet.addEventListener('scrollend', snap);
