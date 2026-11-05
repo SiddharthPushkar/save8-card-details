@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#FCF9F4">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" type="image/png" href="assets-login/app-icon.png">
+<link rel="apple-touch-icon" href="assets-login/app-icon.png">
+<title>Save8 · Log in</title>
+<!-- Figma: 3.1-in-progress (vfm30FI1H96zm9kNcV6YGH), frame 217:7454 "Welcome · slide 45 · Subtle F Bold orange" -->
+<style>
+  @font-face { font-family: "Inter"; src: url("assets-login/inter.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: "League Spartan"; src: url("assets-login/league-spartan.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+  :root {
+    --ink: #0E0F0C;
+    --body: #454745;
+    --muted: #6A6C6A;
+    --placeholder: #A3A5A2;
+    --page: #FCF9F4;
+    --surface: #FFFFFF;
+    --line: rgba(14, 15, 12, .12);
+    --line-strong: rgba(14, 15, 12, .18);
+    --orange: #E6651A;
+    --focus: #2E5CC8;
+    --disabled-bg: rgba(14, 15, 12, .05);
+    --disabled-fg: rgba(14, 15, 12, .32);
+    --truecaller: #0087FF;
+    --radius: 14px;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #EDE9E0;
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; padding: 0; }
+
+  /* One phone-width column; full bleed on a phone */
+  .screen {
+    position: relative;
+    max-width: 430px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--page);
+    overflow: hidden;
+  }
+
+  /* Top bar: Skip */
+  .top {
+    display: flex;
+    justify-content: flex-end;
+    padding: calc(env(safe-area-inset-top) + 16px) 16px 0;
+  }
+  .skip {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    font-size: 13px; line-height: 16px; font-weight: 600;
+  }
+  .skip:active { background: #F4F2EC; }
+
+  /* Hero: app icon, welcome line with wordmark, tagline */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 16px 48px;
+    min-height: 260px;
+  }
+  .app-icon {
+    width: 64px; height: 64px;
+    border-radius: 10.67px;
+    display: block;
+  }
+  .welcome { display: flex; flex-direction: column; align-items: center; }
+  .welcome h1 {
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+    font-family: "League Spartan", sans-serif;
+    font-weight: 700;
+    font-size: 33px; line-height: 36px;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .welcome h1 img {
+    width: auto; height: 32px;
+    margin: -2px 0 0 8px;
+  }
+  .tagline {
+    margin: 0;
+    font-size: 17px; line-height: 24px;
+    color: var(--body);
+  }
+
+  /* Login sheet */
+  .sheet {
+    display: flex;
+    flex-direction: column;
+    min-height: 442px;
+    padding: 28px 16px calc(env(safe-area-inset-bottom) + 40px);
+    background: var(--surface);
+    border-radius: 32px 32px 0 0;
+    box-shadow: 0 -6px 24px rgba(14, 15, 12, .08);
+  }
+  .sheet h2 {
+    margin: 0 0 28px;
+    text-align: center;
+    font-family: "League Spartan", sans-serif;
+    font-weight: 700;
+    font-size: 24px; line-height: 28px;
+  }
+  .primary { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Phone field. Rest: cream with a hairline; focus: white, blue border and soft ring (Figma 217:7509) */
+  /* Hierarchy: the field is the largest control in the sheet (64 tall, 20px type), same style */
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 64px;
+    padding: 0 18px;
+    background: var(--page);
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: background .15s, box-shadow .15s;
+  }
+  .field:focus-within {
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1.5px rgba(46, 92, 200, .4), 0 0 0 4px rgba(46, 92, 200, .14);
+  }
+  .field.is-error {
+    box-shadow: inset 0 0 0 1.5px rgba(191, 30, 44, .55), 0 0 0 4px rgba(191, 30, 44, .1);
+  }
+  .cc { display: flex; align-items: center; gap: 10px; flex: none; }
+  .flag {
+    width: 26px; height: 19px;
+    border-radius: 3.5px;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 6px 1fr 6px;
+    row-gap: 0.5px;
+    background: #fff;
+    box-shadow: 0 0 0 0.5px rgba(14, 15, 12, .08);
+  }
+  .flag i:first-child { background: #FF9933; }
+  .flag i:nth-child(2) { display: grid; place-items: center; }
+  .flag i:nth-child(2)::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #000080; }
+  .flag i:last-child { background: #138808; }
+  .cc span { font-size: 20px; font-weight: 500; }
+  .divider { width: 1px; height: 30px; background: var(--line); flex: none; }
+  .field:focus-within .divider { background: rgba(46, 92, 200, .25); }
+  .field input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 20px;
+    caret-color: var(--focus);
+  }
+  .field input::placeholder { color: var(--placeholder); opacity: 1; }
+
+  /* Buttons (Button v2 · L) */
+  .btn {
+    width: 100%;
+    height: 48px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius);
+    font-size: 16px; line-height: 20px; font-weight: 600;
+    letter-spacing: -0.005em;
+    transition: background .15s, color .15s, transform .1s;
+  }
+  .btn:active:not(:disabled) { transform: scale(.985); }
+  .btn-primary { background: var(--orange); color: #fff; }
+  .btn-primary:disabled { background: var(--disabled-bg); color: var(--disabled-fg); cursor: default; }
+  .btn-outline {
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .btn-outline:active { background: #F7F6F2; }
+  .tc-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--truecaller);
+    display: grid; place-items: center;
+    flex: none;
+  }
+
+  /* Alternatives sit lower and closer together so they read as secondary */
+  .alt { display: flex; flex-direction: column; gap: 20px; margin-top: 36px; }
+  .or {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 12px; line-height: 16px; letter-spacing: .0125em;
+    color: var(--muted);
+  }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .terms {
+    margin: auto 0 0;
+    padding-top: 40px;
+    text-align: center;
+    font-size: 12px; line-height: 16px;
+    color: var(--muted);
+  }
+  .terms a { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .field input:focus-visible { outline: 0; }
+
+  /* Toast: dark, radius 14, 12 above the bottom */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    transform: translate(-50%, 16px);
+    width: min(358px, calc(100% - 32px));
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #0E0F0C;
+    color: #fff;
+    font-size: 14px; line-height: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Motion ---------- */
+  :root { --ease-out: cubic-bezier(.2, .8, .2, 1); }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes pop-in { from { opacity: 0; transform: scale(.7) rotate(-8deg); } 70% { transform: scale(1.06) rotate(1deg); } to { opacity: 1; transform: none; } }
+  @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+  /* 3s cycle: the ring spreads over the first 1.3s, then rests */
+  @keyframes ring {
+    0% { box-shadow: 0 0 0 0 rgba(46, 92, 200, .3); }
+    43%, 100% { box-shadow: 0 0 0 12px rgba(46, 92, 200, 0); }
+  }
+  @keyframes shake { 0%, 100% { transform: none; } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  @keyframes ready { 0% { transform: scale(1); } 45% { transform: scale(1.025); } 100% { transform: scale(1); } }
+
+  /* Entrance: hero first, then the sheet slides up and its content follows */
+  .app-icon { animation: pop-in .6s var(--ease-out) .05s both; }
+  .welcome h1 { animation: rise .5s var(--ease-out) .18s both; }
+  .tagline { animation: rise .5s var(--ease-out) .26s both; }
+  .skip { animation: rise .5s var(--ease-out) .3s both; }
+  .sheet { animation: sheet-up .65s var(--ease-out) .2s both; }
+  .sheet h2 { animation: rise .45s var(--ease-out) .5s both; }
+  .primary { animation: rise .45s var(--ease-out) .58s both; }
+  .alt { animation: rise .45s var(--ease-out) .66s both; }
+  .terms { animation: rise .45s var(--ease-out) .72s both; }
+
+  /* Field draws the eye: one soft ring every 3s once the sheet lands; stops for good once it's focused */
+  .field { position: relative; transition: background .25s var(--ease-out), box-shadow .25s var(--ease-out); }
+  .field::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: ring 3s ease-out 1.1s infinite;
+  }
+  .field:focus-within::after, .field.touched::after { animation: none; }
+  .field.is-error { animation: shake .36s ease-in-out; }
+  .divider { transition: background .25s; }
+  .field input::placeholder { transition: opacity .2s, transform .2s var(--ease-out); }
+  .field:focus-within input::placeholder { opacity: .6; transform: translateX(3px); }
+
+  /* Continue gives a small nudge the moment it becomes available */
+  .btn-primary.is-ready { animation: ready .35s var(--ease-out); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="top">
+    <button class="skip" type="button" id="skip">Skip</button>
+  </div>
+
+  <section class="hero">
+    <img class="app-icon" src="assets-login/app-icon.png" alt="" width="64" height="64">
+    <div class="welcome">
+      <h1>Welcome to<img src="../save8-assets/logos/save8/save8-wordmark.png" alt="Save8"></h1>
+      <p class="tagline">Never overpay again.</p>
+    </div>
+  </section>
+
+  <form class="sheet" id="login" novalidate>
+    <h2>Log in or sign up</h2>
+
+    <div class="primary">
+      <label class="field" id="field">
+        <span class="cc" aria-hidden="true"><span class="flag"><i></i><i></i><i></i></span><span>+91</span></span>
+        <span class="divider" aria-hidden="true"></span>
+        <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="11"
+               placeholder="Mobile number" aria-label="Mobile number, India +91">
+      </label>
+      <button class="btn btn-primary" type="submit" id="continue" disabled>Continue</button>
+    </div>
+
+    <div class="alt">
+      <div class="or">or</div>
+      <button class="btn btn-outline" type="button" id="truecaller">
+        <span class="tc-icon" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
+        </span>
+        Continue with Truecaller
+      </button>
+    </div>
+
+    <p class="terms">By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a></p>
+  </form>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const phone = document.getElementById("phone");
+  const field = document.getElementById("field");
+  const cont = document.getElementById("continue");
+  const toastEl = document.getElementById("toast");
+  let toastTimer;
+
+  const digits = () => phone.value.replace(/\D/g, "");
+  const valid = d => /^[6-9]\d{9}$/.test(d);
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2400);
+  }
+
+  // Keep digits only, shown as 98765 43210
+  phone.addEventListener("input", () => {
+    const d = digits().slice(0, 10);
+    phone.value = d.length > 5 ? d.slice(0, 5) + " " + d.slice(5) : d;
+    field.classList.remove("is-error");
+    const wasDisabled = cont.disabled;
+    cont.disabled = d.length !== 10;
+    if (wasDisabled && !cont.disabled) {
+      cont.classList.remove("is-ready");
+      void cont.offsetWidth;   // restart the animation
+      cont.classList.add("is-ready");
+    }
+  });
+  phone.addEventListener("focus", () => field.classList.add("touched"), { once: true });
+
+  document.getElementById("login").addEventListener("submit", e => {
+    e.preventDefault();
+    const d = digits();
+    if (!valid(d)) {
+      field.classList.remove("is-error");
+      void field.offsetWidth;   // replay the shake on every failed submit
+      field.classList.add("is-error");
+      toast("Enter a valid mobile number");
+      phone.focus();
+      return;
+    }
+    toast("Code sent to +91 " + phone.value);
+  });
+
+  document.getElementById("truecaller").addEventListener("click", () => toast("Opening Truecaller…"));
+  document.getElementById("skip").addEventListener("click", () => toast("Skipped login"));
+</script>
+</body>
+</html>
