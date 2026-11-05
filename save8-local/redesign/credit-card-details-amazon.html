@@ -171,6 +171,11 @@ details[open] summary svg{transform:rotate(180deg)}
 .pills{display:flex;flex-wrap:wrap;gap:6px;padding:0}
 .pills li{list-style:none;padding:4px 10px;border-radius:99px;background:#fff;border:1px solid var(--stroke-2);font-size:12px;line-height:16px;font-weight:500;color:var(--body)}
 .acc-note{font-size:12px;line-height:16px;color:var(--muted);margin-top:4px}
+/* Static group (no chevron): same look as an open accordion */
+.surch{border-top:1px solid var(--line)}
+.surch .sh{padding:12px 0}
+.surch .sh b{display:block;font-size:14px;line-height:20px;font-weight:600}
+.surch .sh span{display:block;font-size:12px;line-height:16px;color:var(--muted)}
 
 /* Issuer link + disclaimer, at the end of each panel */
 .source{display:flex;justify-content:center;margin-top:4px;padding-bottom:8px}
@@ -316,20 +321,20 @@ details[open] summary svg{transform:rotate(180deg)}
       <!-- FEES -->
       <div class="panel" id="p-fees" role="tabpanel" aria-labelledby="tab-fees" hidden>
         <article class="card kvcard">
-          <div class="sec-h" style="padding-bottom:4px"><h2>Fees &amp; charges</h2><p>Card costs and transaction fees</p></div>
+          <div class="sec-h" style="padding-bottom:4px"><h2>Fees &amp; charges</h2></div>
           <dl class="kv">
             <div><dt>Joining fee</dt><dd class="num">₹0</dd></div>
             <div><dt>Annual fee<small>Lifetime free</small></dt><dd class="num">₹0</dd></div>
             <div><dt>Forex markup</dt><dd class="num">1.99%</dd></div>
             <div><dt>Fuel surcharge waiver</dt><dd class="num">1%</dd></div>
           </dl>
-          <details open>
-            <summary><div class="t"><b>Surcharges</b><span>Wallet loading and skill gaming</span></div><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+          <div class="surch">
+            <div class="sh"><b>Surcharges</b></div>
             <div class="acc-body"><div class="panel-in"><dl class="kv">
               <div><dt>Wallet loading<small>On loads of ₹5,000 or more</small></dt><dd class="num">1%</dd></div>
               <div><dt>Skill gaming</dt><dd class="num">2%</dd></div>
             </dl></div></div>
-          </details>
+          </div>
         </article>
       </div>
 
