@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Save8 · Card details · Amazon Pay ICICI</title>
+<meta name="description" content="Save8 credit card details sheet with tabs: Amazon Pay ICICI Card. Built from Figma section 619:7193.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:Inter;src:url(assets-v5/fonts/inter.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{
+  --page:#F7F4ED; --surface:#fff;
+  --ink:#0E0F0C; --body:#454745; --muted:#6A6C6A;
+  --line:#EDEBE5; --line-2:#E6E3DB; --stroke:rgba(14,15,12,.08); --stroke-2:rgba(14,15,12,.1);
+  --green:#007A45; --green-bg:#EAF5EF; --green-chip:#E3F1E9; --orange:#E6651A;
+  --chip:#D9E8FA; --chip-ink:#0F2D6F; --warm:#FFF6EE;
+  --r-card:20px;
+}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{background:#e9e5dc;font-family:Inter,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.4}
+img,svg{display:block}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* Phone column, page behind the sheet */
+/* Bottom sheet pattern: save8/context/general/save8-bottom-sheet.md */
+.app{max-width:430px;height:100vh;height:100dvh;overflow:hidden;margin:0 auto;background:var(--page);position:relative}
+@media(min-width:600px){.app{box-shadow:0 0 0 1px rgba(14,15,12,.08),0 30px 80px -30px rgba(14,15,12,.35)}}
+.behind{height:60px;display:flex;align-items:center;justify-content:center;position:relative}
+.behind .back{position:absolute;left:16px;top:12px;width:36px;height:36px;border-radius:99px;background:#fff;display:grid;place-items:center;color:var(--ink)}
+.behind .back svg{width:20px;height:20px}
+.behind img{height:22px}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:1}
+
+/* Sheet */
+/* Sheet is fully open at this height: its top never moves; content scrolls inside it */
+.sheet{background:var(--page);border-radius:32px 32px 0 0;position:absolute;z-index:2;left:0;right:0;top:65px;bottom:0;overflow:hidden;display:flex;flex-direction:column}
+/* Handle bar never scrolls; everything below it scrolls in .sheet-scroll */
+.sheet-scroll{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;overflow-anchor:none;display:flex;flex-direction:column}
+.sheet-scroll > *{flex-shrink:0}
+/* Header snap: the scroll never rests half-collapsed. Native scroll snap (not a JS tween)
+   so it rides the browser's own fling/wheel momentum, picks the end the gesture was heading
+   for, and never fights inertial scrolling. Two snap areas:
+   · ::before, a 1px dot at the very top → resting point 0 (expanded);
+   · main, whose scroll-margin-top (set in JS = 66 band + tabs) puts its snap point at D
+     (collapsed). main runs to the end and is at least a screen tall (its min-height), so
+     past D it covers the whole viewport, which per spec makes every position inside it a
+     valid resting point: the content scrolls freely, snapping only happens between 0 and D. */
+.sheet-scroll{scroll-snap-type:y mandatory}
+.sheet-scroll::before{content:'';position:absolute;top:0;left:0;width:1px;height:1px;scroll-snap-align:start;pointer-events:none}
+/* flex-basis auto: with main{flex:1} (basis 0) main stayed at its min-height and long tabs
+   overflowed it, so the snap area was shorter than the content and deep scrolls got pulled back to D */
+.sheet-scroll > main{scroll-snap-align:start;flex-basis:auto}
+.handle{height:19px;position:relative;flex:none;background:var(--page);z-index:5}
+.handle span{position:absolute;left:50%;top:10px;width:48px;height:5px;margin-left:-24px;border-radius:3px;background:rgba(106,108,106,.8)}
+
+/* Header + tabs pin together. The header collapses with the scroll (Figma motion 384:26542,
+   end frame: 66 tall, art 64×40 at top-left, title beside it at 90%, chips gone).
+   .stick sticks at top = −(header − 66), so the header scrolls up until only its bottom 66 px
+   show; JS moves the art/title into that band in step with the scroll (no layout changes). */
+.stick{position:sticky;top:calc(66px - var(--hero-h,272px));z-index:4;background:var(--page);transition:box-shadow .25s ease}
+.stick.collapsed{box-shadow:0 4px 12px -6px rgba(60,48,20,.22)}
+.hero{position:relative;overflow:hidden}
+.hero-in{display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 16px 20px;text-align:center}
+.hero .card-art,.hero h1,.hero .issuer,.hero .meta{will-change:transform;backface-visibility:hidden}
+.hero h1,.hero .issuer{display:inline-block;transform-origin:0 0;white-space:nowrap}
+/* Close floats on the dimmed strip above the sheet */
+.close{position:absolute;right:12px;top:20px;z-index:3;width:36px;height:36px;border-radius:99px;background:#fff;display:grid;place-items:center;color:var(--ink)}
+.close svg{width:18px;height:18px}
+.card-art{width:208px;height:131px;border-radius:12px;object-fit:cover;box-shadow:0 12px 24px -6px rgba(13,15,13,.22)}
+.hero h1{font-size:20px;line-height:26px;font-weight:600}
+.hero .issuer{font-size:14px;line-height:20px;color:var(--muted);margin-top:4px;vertical-align:top}
+.meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:99px;font-size:12px;line-height:16px;font-weight:500;background:#fff;border:1px solid var(--stroke-2);color:var(--ink)}
+.chip.ok{background:var(--green-chip);border-color:transparent;color:var(--green)}
+
+/* Tabs */
+.tabs{display:flex;gap:20px;padding:0 16px;background:var(--page);border-bottom:1px solid var(--stroke);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:12px;font-size:14px;line-height:20px;font-weight:500;color:var(--muted);white-space:nowrap}
+.tab::after{content:"";height:2.5px;width:100%;border-radius:2px;background:transparent}
+.tab[aria-selected="true"]{color:var(--ink);font-weight:600}
+.tab[aria-selected="true"]::after{background:var(--ink)}
+
+/* Panels */
+main{flex:1;padding:16px 16px 24px}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel[hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--stroke);border-radius:var(--r-card);padding:16px;display:flex;flex-direction:column;gap:14px}
+.sec-h h2{font-size:16px;line-height:22px;font-weight:600}
+.sec-h p{font-size:13px;line-height:18px;color:var(--muted);margin-top:2px}
+.foot{font-size:12px;line-height:16px;color:var(--muted)}
+.divider{height:1px;background:var(--line)}
+
+/* Summary */
+.est{font-size:14px;line-height:20px;color:var(--muted)}
+.est b{font-weight:600}
+.amount{font-family:"League Spartan",Inter,sans-serif;font-weight:700;font-size:38px;line-height:46px;color:var(--green);margin-top:2px}
+.kind{font-size:16px;line-height:22px;font-weight:600;color:var(--body)}
+.offer{background:var(--page);border-radius:12px;padding:12px;font-size:14px;line-height:20px;font-weight:500;color:var(--body)}
+
+/* Tiers */
+.tiers{display:flex;flex-direction:column;gap:8px}
+.tier{background:var(--page);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.tier.hl{background:var(--green-bg);border:1px solid rgba(0,122,69,.35)}
+.tier-row{display:flex;align-items:center;gap:12px}
+.badge{width:52px;height:40px;border-radius:10px;background:#fff;display:grid;place-items:center;font-size:16px;font-weight:700;color:var(--green);flex:none}
+.tier-row .t{flex:1;min-width:0}
+.tier-row .t b{display:block;font-size:14px;line-height:20px;font-weight:600}
+.tier-row .t span{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+.cap{text-align:right;flex:none}
+.cap span{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+.cap b{display:block;font-size:16px;line-height:22px;font-weight:600}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cats li{list-style:none;padding:4px 10px;border-radius:99px;background:#fff;border:1px solid rgba(0,122,69,.18);font-size:12px;line-height:16px;font-weight:500;color:var(--body)}
+.cats li.key{border-color:rgba(0,122,69,.45);color:var(--green);font-weight:600}
+ul.cats{padding:0}
+
+/* Icon rows */
+.rows{display:flex;flex-direction:column;gap:2px}
+.irow{display:flex;gap:12px;align-items:flex-start;padding:10px 0}
+.irow svg{width:32px;height:32px;flex:none}
+.irow b{display:block;font-size:14px;line-height:20px;font-weight:600}
+.irow p{font-size:13px;line-height:18px;color:var(--muted);margin-top:2px}
+.card.warm{background:var(--warm);border-color:rgba(230,101,26,.25);gap:6px}
+.note-box{background:var(--page);border-radius:10px;padding:10px 12px;font-size:13px;line-height:18px;color:var(--muted);margin-top:6px}
+
+/* Key-value */
+.kv{display:flex;flex-direction:column}
+.kv > div{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.kv > div:first-child{border-top:0}
+.kv dt{font-size:14px;line-height:20px;color:var(--body)}
+.kv dt small{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+.kv dd{font-size:14px;line-height:20px;font-weight:600;text-align:right;white-space:nowrap}
+.kv dd.save{color:var(--green)}
+.card.kvcard{gap:6px}
+.card.kvcard > .sec-h + .acc-body{padding-bottom:0}
+
+/* Accordions */
+details{border-top:1px solid var(--line)}
+.card > details:first-child{border-top:0}
+.card > details:first-child summary{padding-top:0}
+details summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
+details summary::-webkit-details-marker{display:none}
+details summary .t{flex:1}
+details summary b{display:block;font-size:14px;line-height:20px;font-weight:500}
+details[open] summary b{font-weight:600}
+details summary span{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+details summary svg{width:20px;height:20px;color:var(--muted);transition:transform .2s ease;flex:none}
+details[open] summary svg{transform:rotate(180deg)}
+.acc-body{padding-bottom:12px;display:flex;flex-direction:column;gap:4px}
+.panel-in{background:var(--page);border-radius:12px;padding:4px 12px}
+.panel-in .kv dt{font-size:13px;line-height:18px}
+.panel-in .kv dd{font-size:13px;line-height:18px}
+.panel-in .kv > div{padding:9px 0;border-color:var(--line-2)}
+.grp{padding:10px 0;display:flex;flex-direction:column;gap:8px}
+.grp + .grp{border-top:1px solid var(--line-2)}
+.grp h3{font-size:12px;line-height:16px;font-weight:600;color:var(--muted)}
+.grp p{font-size:13px;line-height:18px;color:var(--body)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;padding:0}
+.pills li{list-style:none;padding:4px 10px;border-radius:99px;background:#fff;border:1px solid var(--stroke-2);font-size:12px;line-height:16px;font-weight:500;color:var(--body)}
+.acc-note{font-size:12px;line-height:16px;color:var(--muted);margin-top:4px}
+
+/* Issuer link + disclaimer, at the end of each panel */
+.source{display:flex;justify-content:center;margin-top:4px;padding-bottom:8px}
+.issuer-link{display:inline-flex;align-items:center;gap:6px;padding:8px;font-size:14px;line-height:20px;font-weight:500;color:var(--muted)}
+.issuer-link svg{width:14px;height:14px}
+
+/* Bottom bar: fixed under the scrolling body (Figma: 89 high, white, padding 12 / 16) */
+.bar{flex:none;background:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--stroke);z-index:5}
+.apply{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:14px;background:var(--orange);color:#fff;font-size:16px;line-height:24px;font-weight:600}
+.apply svg{width:18px;height:18px}
+</style>
+</head>
+<body>
+
+<!-- Shared gradients for the illustrated icons (Save8 icon system) -->
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7AA5F4"/><stop offset="1" stop-color="#2E5CC8"/></linearGradient>
+    <linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4C7BDE"/><stop offset="1" stop-color="#1F439E"/></linearGradient>
+    <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD66E"/><stop offset="1" stop-color="#EE9B1E"/></linearGradient>
+    <linearGradient id="go" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA75E"/><stop offset="1" stop-color="#E6651A"/></linearGradient>
+    <linearGradient id="ge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FD98D"/><stop offset="1" stop-color="#16A057"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="app">
+  <div class="behind" aria-hidden="true">
+    <span class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+    <img src="../../save8-assets/logos/save8/save8-wordmark.png" alt="">
+  </div>
+  <div class="scrim" aria-hidden="true"></div>
+  <button class="close" type="button" aria-label="Close" onclick="history.length>1?history.back():null">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#454745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 18 6M6 6l12 12"/></svg>
+  </button>
+
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="card-name">
+    <div class="handle" aria-hidden="true"><span></span></div>
+    <div class="sheet-scroll">
+
+    <div class="stick">
+    <header class="hero"><div class="hero-in">
+      <img class="card-art" src="assets-card/icici-amazon-pay.webp" alt="Amazon Pay ICICI Bank credit card" width="208" height="131">
+      <div>
+        <h1 id="card-name">Amazon Pay ICICI Card</h1><br>
+        <p class="issuer">ICICI Bank · Entry</p>
+        <div class="meta">
+          <span class="chip">Visa</span>
+          <span class="chip">Cashback card</span>
+          <span class="chip ok">Verified</span>
+        </div>
+      </div>
+    </div></header>
+    <nav class="tabs" role="tablist" aria-label="Card details">
+      <button class="tab" role="tab" id="tab-overview" aria-controls="p-overview" aria-selected="true">Overview</button>
+      <button class="tab" role="tab" id="tab-earn" aria-controls="p-earn" aria-selected="false" tabindex="-1">Earn</button>
+      <button class="tab" role="tab" id="tab-perks" aria-controls="p-perks" aria-selected="false" tabindex="-1">Perks</button>
+      <button class="tab" role="tab" id="tab-fees" aria-controls="p-fees" aria-selected="false" tabindex="-1">Fees</button>
+      <button class="tab" role="tab" id="tab-eligibility" aria-controls="p-eligibility" aria-selected="false" tabindex="-1">Eligibility</button>
+    </nav>
+    </div>
+
+    <main>
+      <!-- OVERVIEW -->
+      <div class="panel" id="p-overview" role="tabpanel" aria-labelledby="tab-overview">
+        <article class="card">
+          <div>
+            <p class="est"><b>Estimated savings</b> on this product</p>
+            <p class="amount num">₹1,750</p>
+            <p class="kind">Cashback</p>
+          </div>
+          <p class="offer">5% Cashback on Min Purchase of ₹1000, up to ₹2000</p>
+        </article>
+
+        <article class="card warm">
+          <div class="sec-h"><h2>Good to know</h2></div>
+          <div class="rows">
+            <div class="irow">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="21" cy="18" r="12" fill="url(#gb)"/><rect x="15" y="27" width="12" height="11" rx="3" fill="url(#gd)"/><rect x="17" y="31" width="8" height="2.5" rx="1.25" fill="#fff" opacity=".8"/><circle cx="36" cy="34" r="8.5" fill="url(#go)"/><path d="M36 30v8M32 34h8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+              <div><b>Prime gets the higher rate</b><p>5% on eligible Amazon.in purchases with Prime; 3% without Prime.</p></div>
+            </div>
+            <div class="irow">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="9" y="9" width="26" height="12" rx="3" fill="#B9D0F8"/><rect x="5" y="14" width="32" height="24" rx="4" fill="url(#gb)"/><rect x="5" y="14" width="32" height="7" rx="3.5" fill="url(#gd)"/><circle cx="36" cy="34" r="8.5" fill="url(#gg)"/><circle cx="36" cy="34" r="4.2" stroke="#fff" stroke-width="2.2"/></svg>
+              <div><b>Cashback stays in Amazon Pay</b><p>No cash or statement credit. Rewards never expire and arrive about 45 days after the statement.</p></div>
+            </div>
+            <div class="irow">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M15 17v-3a6 6 0 0 1 12 0v3" stroke="#1F439E" stroke-width="3" stroke-linecap="round"/><path d="M7 16h28l-2 24H9z" fill="url(#gb)"/><rect x="7" y="16" width="14" height="24" fill="#fff" opacity=".14"/><circle cx="36" cy="34" r="8.5" fill="url(#go)"/><path d="M33 31l6 6M39 31l-6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+              <div><b>Some transactions earn nothing</b><p>Rent, taxes, education, fuel and EMI transactions earn no cashback.</p></div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- EARN -->
+      <div class="panel" id="p-earn" role="tabpanel" aria-labelledby="tab-earn" hidden>
+        <article class="card">
+          <div class="sec-h"><h2>How you earn</h2><p>Unlimited cashback across four earning rates</p></div>
+          <div class="tiers">
+            <div class="tier hl"><div class="tier-row"><span class="badge">5%</span><div class="t"><b>Amazon.in · Prime</b><span>Eligible Amazon.in purchases</span></div><div class="cap"><span>Limit</span><b>No cap</b></div></div></div>
+            <div class="tier"><div class="tier-row"><span class="badge">3%</span><div class="t"><b>Amazon.in · Non-Prime</b><span>Eligible Amazon.in purchases</span></div><div class="cap"><span>Limit</span><b>No cap</b></div></div></div>
+            <div class="tier"><div class="tier-row"><span class="badge">2%</span><div class="t"><b>Amazon Pay partners</b><span>100+ partner merchants</span></div><div class="cap"><span>Limit</span><b>No cap</b></div></div><ul class="pills"><li>Bills</li><li>Recharges</li><li>Gift cards</li><li>E-books</li></ul></div>
+            <div class="tier"><div class="tier-row"><span class="badge">1%</span><div class="t"><b>Everything else</b><span>Eligible online and offline spends</span></div><div class="cap"><span>Limit</span><b>No cap</b></div></div></div>
+          </div>
+          <p class="foot">Rewards never expire. Paid to Amazon Pay balance about 45 days after the statement.</p>
+        </article>
+
+        <article class="card kvcard">
+          <div class="sec-h"><h2>Spends that earn no cashback</h2><p>Excluded from every earning rate</p></div>
+          <div class="acc-body"><div class="panel-in">
+            <div class="grp"><h3>No cashback on</h3>
+              <ul class="pills"><li>Rent</li><li>Taxes</li><li>Education</li><li>EMI transactions</li><li>Fuel</li></ul>
+            </div>
+          </div></div>
+        </article>
+      </div>
+
+      <!-- PERKS -->
+      <div class="panel" id="p-perks" role="tabpanel" aria-labelledby="tab-perks" hidden>
+        <article class="card" style="gap:6px">
+          <div class="sec-h"><h2>Perks</h2></div>
+          <div class="rows">
+            <div class="irow">
+              <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M19.334 5.33398H10.6673C8.82637 5.33398 7.33398 6.82637 7.33398 8.66732V18.0007C7.33398 19.8416 8.82637 21.334 10.6673 21.334H19.334C21.1749 21.334 22.6673 19.8416 22.6673 18.0007V8.66732C22.6673 6.82637 21.1749 5.33398 19.334 5.33398Z" fill="url(#gl1)"/><path d="M10 8.66667C10 8.29867 10.2987 8 10.6667 8H19.3333" stroke="#B9D0F8" stroke-width="1.33333" stroke-linecap="round"/><path d="M7.33398 22.666H10.0007V25.9993C10.0007 26.736 9.40398 27.3327 8.66732 27.3327C7.93065 27.3327 7.33398 26.736 7.33398 25.9993V22.666ZM20.0007 22.666H22.6673V25.9993C22.6673 26.736 22.0707 27.3327 21.334 27.3327C20.5973 27.3327 20.0007 26.736 20.0007 25.9993V22.666Z" fill="#2E5CC8"/><path d="M4.66602 16.666C4.66602 15.5613 5.56135 14.666 6.66602 14.666C7.77068 14.666 8.66602 15.5613 8.66602 16.666V19.3327H21.3327V16.666C21.3327 15.5613 22.228 14.666 23.3327 14.666C24.4373 14.666 25.3327 15.5613 25.3327 16.666V21.9993C25.3327 23.472 24.1387 24.666 22.666 24.666H7.33268C5.86002 24.666 4.66602 23.472 4.66602 21.9993V16.666Z" fill="url(#gl2)"/><path d="M19.334 18H10.6673C9.93094 18 9.33398 18.597 9.33398 19.3333C9.33398 20.0697 9.93094 20.6667 10.6673 20.6667H19.334C20.0704 20.6667 20.6673 20.0697 20.6673 19.3333C20.6673 18.597 20.0704 18 19.334 18Z" fill="#B9D0F8"/><path d="M24.666 28.666C27.4274 28.666 29.666 26.4274 29.666 23.666C29.666 20.9046 27.4274 18.666 24.666 18.666C21.9046 18.666 19.666 20.9046 19.666 23.666C19.666 26.4274 21.9046 28.666 24.666 28.666Z" fill="url(#go)" stroke="#fff" stroke-width="1.33333"/><path d="M22.5332 23.6659L23.9332 25.0659L26.7332 22.1992" stroke="#fff" stroke-width="1.46667" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="gl1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8CB2FA"/><stop offset="1" stop-color="#4C7BDE"/></linearGradient><linearGradient id="gl2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#6291ED"/><stop offset="1" stop-color="#2E5CC8"/></linearGradient></defs></svg>
+              <div><b>4 domestic lounge visits a year</b><p>Spend requirement of approximately ₹75,000.</p></div>
+            </div>
+            <div class="irow">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M8 6h24v34l-4-3-4 3-4-3-4 3-4-3-4 3z" fill="url(#gb)"/><rect x="13" y="13" width="14" height="3" rx="1.5" fill="#fff"/><rect x="13" y="20" width="11" height="3" rx="1.5" fill="#fff" opacity=".8"/><rect x="13" y="27" width="8" height="3" rx="1.5" fill="#fff" opacity=".6"/><circle cx="36" cy="34" r="8.5" fill="url(#gg)"/><circle cx="36" cy="34" r="4.2" stroke="#fff" stroke-width="2.2"/></svg>
+              <div><b>1% fuel surcharge waiver</b><p>Fuel spends do not earn cashback.</p></div>
+            </div>
+            <div class="irow">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="11" y="8" width="32" height="21" rx="3.5" fill="#B9D0F8"/><rect x="5" y="16" width="32" height="22" rx="3.5" fill="url(#gb)"/><rect x="5" y="16" width="16" height="22" fill="#fff" opacity=".14"/><rect x="10" y="22" width="8" height="6" rx="1.5" fill="url(#gg)"/><rect x="10" y="32" width="14" height="2.5" rx="1.25" fill="#fff" opacity=".8"/></svg>
+              <div><b>Lower forex markup</b><p>1.99% markup on international transactions.</p></div>
+            </div>
+            <div class="irow">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="7" y="19" width="30" height="21" rx="3.5" fill="url(#gb)"/><rect x="5" y="13" width="34" height="8" rx="3" fill="url(#gd)"/><rect x="19" y="13" width="6" height="27" fill="url(#gg)"/><path d="M22 13c-3-6-10-6-9-1 1 3 6 1 9 1zm0 0c3-6 10-6 9-1-1 3-6 1-9 1z" fill="url(#go)"/></svg>
+              <div><b>Lifetime free</b><p>No joining fee and no annual fee.</p></div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- FEES -->
+      <div class="panel" id="p-fees" role="tabpanel" aria-labelledby="tab-fees" hidden>
+        <article class="card kvcard">
+          <div class="sec-h" style="padding-bottom:4px"><h2>Fees &amp; charges</h2><p>Card costs and transaction fees</p></div>
+          <dl class="kv">
+            <div><dt>Joining fee</dt><dd class="num">₹0</dd></div>
+            <div><dt>Annual fee<small>Lifetime free</small></dt><dd class="num">₹0</dd></div>
+            <div><dt>Forex markup</dt><dd class="num">1.99%</dd></div>
+            <div><dt>Fuel surcharge waiver</dt><dd class="num">1%</dd></div>
+          </dl>
+          <details open>
+            <summary><div class="t"><b>Surcharges</b><span>Wallet loading and skill gaming</span></div><svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+            <div class="acc-body"><div class="panel-in"><dl class="kv">
+              <div><dt>Wallet loading<small>On loads of ₹5,000 or more</small></dt><dd class="num">1%</dd></div>
+              <div><dt>Skill gaming</dt><dd class="num">2%</dd></div>
+            </dl></div></div>
+          </details>
+        </article>
+      </div>
+
+      <!-- ELIGIBILITY -->
+      <div class="panel" id="p-eligibility" role="tabpanel" aria-labelledby="tab-eligibility" hidden>
+        <article class="card kvcard">
+          <div class="sec-h" style="padding-bottom:4px"><h2>Who can apply</h2></div>
+          <dl class="kv">
+            <div><dt>Availability</dt><dd>Invite-only</dd></div>
+            <div><dt>Minimum age</dt><dd>Not listed</dd></div>
+            <div><dt>Income requirement</dt><dd>Not listed</dd></div>
+          </dl>
+        </article>
+        <article class="card kvcard">
+          <div class="sec-h" style="padding-bottom:4px"><h2>Card details</h2></div>
+          <dl class="kv">
+            <div><dt>Issuer</dt><dd>ICICI Bank</dd></div>
+            <div><dt>Network</dt><dd>Visa</dd></div>
+            <div><dt>Tier</dt><dd>Entry</dd></div>
+            <div><dt>Card type</dt><dd>Co-brand cashback</dd></div>
+          </dl>
+        </article>
+      </div>
+      <div class="source">
+        <a class="issuer-link" href="https://www.icicibank.com/personal-banking/cards/credit-card/amazon-pay-credit-card" target="_blank" rel="noopener">View on ICICI Bank
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        </a>
+      </div>
+    </main>
+    </div>
+    <div class="bar">
+      <a class="apply" href="https://www.icicibank.com/personal-banking/cards/credit-card/amazon-pay-credit-card" target="_blank" rel="noopener">Apply for this card
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+      </a>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const stick = document.querySelector('.stick');
+  const sheet = document.querySelector('.sheet-scroll');
+  const hero = document.querySelector('.hero');
+  const main = document.querySelector('main');
+  const tabBar = document.querySelector('.tabs');
+  const art = hero.querySelector('.card-art'), nameEl = hero.querySelector('h1'), iss = hero.querySelector('.issuer'), meta = hero.querySelector('.meta');
+  const BAND = 66;                       // collapsed header height
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+  let D = 1, g = null;                   // D = scroll distance over which the header collapses
+
+  // Measure the expanded header and where each part lands in the bottom 66 px band
+  // (that band is all that stays visible once .stick pins): art 64×40 at (16, 13),
+  // title at x 96 (90%, or smaller if it would not fit), issuer under it.
+  function measure() {
+    hero.classList.remove('sda');
+    [art, nameEl, iss, meta].forEach(e => { e.style.transform = ''; e.style.opacity = ''; });
+    const h = hero.getBoundingClientRect(), rel = el => { const r = el.getBoundingClientRect(); return {x: r.left - h.left, y: r.top - h.top, w: r.width, h: r.height}; };
+    const a = rel(art), n = rel(nameEl), i = rel(iss);
+    D = h.height - BAND;
+    stick.style.setProperty('--hero-h', h.height + 'px');
+    const ns = Math.min(.9, (h.width - 96 - 16) / n.w);
+    g = {
+      a: {dx: 48 - (a.x + a.w / 2), dy: D + 33 - (a.y + a.h / 2), s: 64 / a.w},
+      n: {dx: 96 - n.x, dy: D + 11 - n.y, s: ns},
+      i: {dx: 96 - i.x, dy: D + 11 + n.h * ns + 1 - i.y},
+    };
+    // every tab must be able to scroll far enough to stay collapsed
+    main.style.minHeight = (sheet.clientHeight - BAND - tabBar.offsetHeight) + 'px';
+    // main's snap point = its top minus the pinned band + tabs = exactly D (see CSS);
+    // exact (fractional) tab height, offsetHeight rounds and would put the point ½px off D
+    main.style.scrollMarginTop = (BAND + tabBar.getBoundingClientRect().height) + 'px';
+    if (SDA) buildScrollAnimations();
+    update();
+  }
+
+  // Header progress: 0 = expanded, 1 = collapsed (scroll 0 → D).
+  // Paths are curved so the card never crosses the title: the card goes left and
+  // shrinks early, then drops into place late (p^1.5: late enough to clear the title,
+  // early enough to stay below the handle bar); the title moves early, so it is clear before the card arrives.
+  const early = t => 1 - (1 - t) * (1 - t);
+  function frame(p) {
+    const e = early(p), c = Math.min(1, p * 3);   // chips fade out over the first third
+    return {
+      art: `translate(${(g.a.dx * e).toFixed(2)}px,${(g.a.dy * Math.pow(p, 1.5)).toFixed(2)}px) scale(${(1 + (g.a.s - 1) * e).toFixed(4)})`,
+      name: `translate(${(g.n.dx * e).toFixed(2)}px,${(g.n.dy * e).toFixed(2)}px) scale(${(1 + (g.n.s - 1) * p).toFixed(4)})`,
+      iss: `translate(${(g.i.dx * e).toFixed(2)}px,${(g.i.dy * e).toFixed(2)}px)`,
+      metaT: `translateY(${(16 * c).toFixed(2)}px)`, metaO: (1 - c).toFixed(3),
+    };
+  }
+
+  // Where supported, the browser drives the motion straight from the scroll position
+  // (scroll-driven animations run in step with scrolling, so nothing lags or shakes).
+  // The curves are baked into keyframes every 4%. Elsewhere, JS applies frame() per rAF.
+  const SDA = CSS.supports('animation-timeline: scroll()');
+  const animCss = document.head.appendChild(document.createElement('style'));
+  function buildScrollAnimations() {
+    const k = {art: '', name: '', iss: '', meta: ''};
+    for (let s = 0; s <= 25; s++) {
+      const f = frame(s / 25), at = (s * 4) + '%';
+      k.art += `${at}{transform:${f.art}}`;
+      k.name += `${at}{transform:${f.name}}`;
+      k.iss += `${at}{transform:${f.iss}}`;
+      k.meta += `${at}{transform:${f.metaT};opacity:${f.metaO}}`;
+    }
+    const use = (sel, name) => `.hero.sda ${sel}{animation:${name} linear both;animation-timeline:--sheet;animation-range:0px ${D}px}`;
+    animCss.textContent =
+      `.sheet-scroll{scroll-timeline:--sheet block}` +
+      `@keyframes cc-art{${k.art}}@keyframes cc-name{${k.name}}@keyframes cc-iss{${k.iss}}@keyframes cc-meta{${k.meta}}` +
+      use('.card-art', 'cc-art') + use('h1', 'cc-name') + use('.issuer', 'cc-iss') + use('.meta', 'cc-meta');
+    hero.classList.add('sda');
+  }
+
+  function update() {
+    ticking = false;
+    const p = Math.min(1, Math.max(0, sheet.scrollTop / D));
+    if (!SDA) {
+      const f = frame(p);
+      art.style.transform = f.art; nameEl.style.transform = f.name; iss.style.transform = f.iss;
+      meta.style.transform = f.metaT; meta.style.opacity = f.metaO;
+    }
+    stick.classList.toggle('collapsed', p >= 1);
+  }
+
+  // Header snap is native CSS scroll snap (see the .sheet-scroll rules). The JS below is
+  // only a backstop: once scrolling has fully stopped, if the sheet still rests between
+  // the two states (no scroll snap support, or an engine that did not re-snap, e.g. a
+  // programmatic scroll cut short), finish the move the way the user was going.
+  const NATIVE_SNAP = CSS.supports('scroll-snap-type', 'y mandatory');
+  let snapTimer, anim = 0, idleY = 0, moving = false, snapping = false, touching = false;
+  const out = t => 1 - Math.pow(1 - t, 4);               // fast start, soft landing
+  function goTo(target) {
+    const from = sheet.scrollTop, dist = target - from;
+    if (Math.abs(dist) < 1) return;
+    if (calm.matches) { sheet.scrollTop = target; return; }
+    const dur = Math.max(140, Math.min(260, Math.abs(dist) * 1.6)), t0 = performance.now();
+    cancelAnimationFrame(anim); snapping = true;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur);
+      sheet.scrollTop = from + dist * out(k);
+      if (k < 1) anim = requestAnimationFrame(step); else snapping = false;
+    };
+    anim = requestAnimationFrame(step);
+  }
+  function snap() {
+    moving = false;
+    const y = sheet.scrollTop;
+    // never under a resting finger (no scrollend there, only the debounce), nor past D
+    if (snapping || touching || y <= .5 || y >= D - .5) return;
+    const dir = y - idleY;                                  // which way did they go?
+    const target = Math.abs(dir) > 6 ? (dir > 0 ? D : 0) : (y < D / 2 ? 0 : D);
+    // with native snap, per-frame scrollTop writes would each get snapped to the nearest
+    // end, so hand the move to the browser; target is a snap point, so it is kept
+    if (NATIVE_SNAP) sheet.scrollTo({top: target, behavior: calm.matches ? 'instant' : 'smooth'});
+    else goTo(target);
+  }
+  const cancelSnap = () => { cancelAnimationFrame(anim); snapping = false; };
+  sheet.addEventListener('touchstart', () => { touching = true; cancelSnap(); }, {passive: true});
+  sheet.addEventListener('touchend', e => { touching = e.touches.length > 0; }, {passive: true});
+  sheet.addEventListener('touchcancel', () => { touching = false; }, {passive: true});
+  sheet.addEventListener('wheel', cancelSnap, {passive: true});
+
+  // Mouse-wheel notches inside the header band: native snap resolves a notch by nearest
+  // end, and one notch (~100px) is under D/2, so the header would bounce back and never
+  // collapse one notch at a time. A notch is a clear intent, so go all the way that way.
+  // Trackpads send small deltas and keep the native, momentum-aware snap; deep content
+  // (past D) is never touched.
+  if (NATIVE_SNAP) sheet.addEventListener('wheel', e => {
+    if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;   // pinch-zoom / sideways
+    const notch = e.deltaMode !== 0 || Math.abs(e.deltaY) >= 40;
+    const y = sheet.scrollTop, down = e.deltaY > 0;
+    if (!notch || (down ? y >= D - 1 : y <= 0 || y > D + 1)) return;
+    e.preventDefault();
+    sheet.scrollTo({top: down ? D : 0, behavior: calm.matches ? 'instant' : 'smooth'});
+  }, {passive: false});
+  function select(tab, focus, push) {
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+    // bring the tab into view horizontally only (scrollIntoView would also move the sheet)
+    const tb = tab.parentElement, l = tab.offsetLeft - 16, r = tab.offsetLeft + tab.offsetWidth + 16 - tb.clientWidth;
+    if (tb.scrollLeft > l) tb.scrollTo({left: l, behavior: 'smooth'});
+    else if (tb.scrollLeft < r) tb.scrollTo({left: r, behavior: 'smooth'});
+    // new tab starts at its top; if the header is collapsed, keep it collapsed
+    if (sheet.scrollTop > D) sheet.scrollTop = D;
+    if (push) history.replaceState(null, '', '#' + tab.id.replace('tab-', ''));
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t, false, true));
+    t.addEventListener('keydown', e => {
+      const k = {ArrowRight: 1, ArrowLeft: -1}[e.key];
+      if (k) { e.preventDefault(); select(tabs[(i + k + tabs.length) % tabs.length], true, true); }
+      if (e.key === 'Home') { e.preventDefault(); select(tabs[0], true, true); }
+      if (e.key === 'End') { e.preventDefault(); select(tabs[tabs.length - 1], true, true); }
+    });
+  });
+  // Swipe left / right on the content to move to the next / previous tab.
+  let sx = 0, sy = 0, sw = false;
+  sheet.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    sx = t.clientX; sy = t.clientY;
+    sw = e.touches.length === 1 && !e.target.closest('.tabs, [data-noswipe]');
+  }, {passive: true});
+  sheet.addEventListener('touchend', e => {
+    if (!sw) return;
+    sw = false;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const i = tabs.findIndex(x => x.getAttribute('aria-selected') === 'true'), n = tabs[i + (dx < 0 ? 1 : -1)];
+    if (!n) return;
+    select(n, false, true);
+    const p = document.getElementById(n.getAttribute('aria-controls'));
+    if (!calm.matches) p.animate([{opacity: 0, transform: `translateX(${dx < 0 ? 24 : -24}px)`}, {opacity: 1, transform: 'none'}], {duration: 220, easing: 'ease-out'});
+  }, {passive: true});
+  const start = document.getElementById('tab-' + location.hash.slice(1));
+  if (start) select(start, false, false);
+  var ticking = false, lastY = 0;
+  const onScroll = () => {
+    const y = sheet.scrollTop;
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    if (!moving && !snapping) { moving = true; idleY = lastY; }
+    if (!('onscrollend' in window)) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 90); }
+  };
+  sheet.addEventListener('scroll', () => { onScroll(); lastY = sheet.scrollTop; }, {passive: true});
+  sheet.addEventListener('scrollend', snap);
+  measure();
+  addEventListener('resize', measure);
+  document.fonts && document.fonts.ready.then(measure);
+})();
+</script>
+</body>
+</html>

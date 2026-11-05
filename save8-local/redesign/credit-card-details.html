@@ -45,6 +45,19 @@ a{color:inherit;text-decoration:none}
 /* Handle bar never scrolls; everything below it scrolls in .sheet-scroll */
 .sheet-scroll{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;overflow-anchor:none;display:flex;flex-direction:column}
 .sheet-scroll > *{flex-shrink:0}
+/* Header snap: the scroll never rests half-collapsed. Native scroll snap (not a JS tween)
+   so it rides the browser's own fling/wheel momentum, picks the end the gesture was heading
+   for, and never fights inertial scrolling. Two snap areas:
+   · ::before, a 1px dot at the very top → resting point 0 (expanded);
+   · main, whose scroll-margin-top (set in JS = 66 band + tabs) puts its snap point at D
+     (collapsed). main runs to the end and is at least a screen tall (its min-height), so
+     past D it covers the whole viewport, which per spec makes every position inside it a
+     valid resting point: the content scrolls freely, snapping only happens between 0 and D. */
+.sheet-scroll{scroll-snap-type:y mandatory}
+.sheet-scroll::before{content:'';position:absolute;top:0;left:0;width:1px;height:1px;scroll-snap-align:start;pointer-events:none}
+/* flex-basis auto: with main{flex:1} (basis 0) main stayed at its min-height and long tabs
+   overflowed it, so the snap area was shorter than the content and deep scrolls got pulled back to D */
+.sheet-scroll > main{scroll-snap-align:start;flex-basis:auto}
 .handle{height:19px;position:relative;flex:none;background:var(--page);z-index:5}
 .handle span{position:absolute;left:50%;top:10px;width:48px;height:5px;margin-left:-24px;border-radius:3px;background:rgba(106,108,106,.8)}
 
@@ -427,6 +440,9 @@ details[open] summary svg{transform:rotate(180deg)}
     };
     // every tab must be able to scroll far enough to stay collapsed
     main.style.minHeight = (sheet.clientHeight - BAND - tabBar.offsetHeight) + 'px';
+    // main's snap point = its top minus the pinned band + tabs = exactly D (see CSS);
+    // exact (fractional) tab height, offsetHeight rounds and would put the point ½px off D
+    main.style.scrollMarginTop = (BAND + tabBar.getBoundingClientRect().height) + 'px';
     if (SDA) buildScrollAnimations();
     update();
   }
@@ -479,12 +495,57 @@ details[open] summary svg{transform:rotate(180deg)}
     stick.classList.toggle('collapsed', p >= 1);
   }
 
-  // If the user stops halfway, ease to whichever state is closer.
-  let snapTimer;
-  function snap() {
-    const y = sheet.scrollTop;
-    if (y > 0 && y < D) sheet.scrollTo({top: y < D / 2 ? 0 : D, behavior: calm.matches ? 'auto' : 'smooth'});
+  // Header snap is native CSS scroll snap (see the .sheet-scroll rules). The JS below is
+  // only a backstop: once scrolling has fully stopped, if the sheet still rests between
+  // the two states (no scroll snap support, or an engine that did not re-snap, e.g. a
+  // programmatic scroll cut short), finish the move the way the user was going.
+  const NATIVE_SNAP = CSS.supports('scroll-snap-type', 'y mandatory');
+  let snapTimer, anim = 0, idleY = 0, moving = false, snapping = false, touching = false;
+  const out = t => 1 - Math.pow(1 - t, 4);               // fast start, soft landing
+  function goTo(target) {
+    const from = sheet.scrollTop, dist = target - from;
+    if (Math.abs(dist) < 1) return;
+    if (calm.matches) { sheet.scrollTop = target; return; }
+    const dur = Math.max(140, Math.min(260, Math.abs(dist) * 1.6)), t0 = performance.now();
+    cancelAnimationFrame(anim); snapping = true;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur);
+      sheet.scrollTop = from + dist * out(k);
+      if (k < 1) anim = requestAnimationFrame(step); else snapping = false;
+    };
+    anim = requestAnimationFrame(step);
   }
+  function snap() {
+    moving = false;
+    const y = sheet.scrollTop;
+    // never under a resting finger (no scrollend there, only the debounce), nor past D
+    if (snapping || touching || y <= .5 || y >= D - .5) return;
+    const dir = y - idleY;                                  // which way did they go?
+    const target = Math.abs(dir) > 6 ? (dir > 0 ? D : 0) : (y < D / 2 ? 0 : D);
+    // with native snap, per-frame scrollTop writes would each get snapped to the nearest
+    // end, so hand the move to the browser; target is a snap point, so it is kept
+    if (NATIVE_SNAP) sheet.scrollTo({top: target, behavior: calm.matches ? 'instant' : 'smooth'});
+    else goTo(target);
+  }
+  const cancelSnap = () => { cancelAnimationFrame(anim); snapping = false; };
+  sheet.addEventListener('touchstart', () => { touching = true; cancelSnap(); }, {passive: true});
+  sheet.addEventListener('touchend', e => { touching = e.touches.length > 0; }, {passive: true});
+  sheet.addEventListener('touchcancel', () => { touching = false; }, {passive: true});
+  sheet.addEventListener('wheel', cancelSnap, {passive: true});
+
+  // Mouse-wheel notches inside the header band: native snap resolves a notch by nearest
+  // end, and one notch (~100px) is under D/2, so the header would bounce back and never
+  // collapse one notch at a time. A notch is a clear intent, so go all the way that way.
+  // Trackpads send small deltas and keep the native, momentum-aware snap; deep content
+  // (past D) is never touched.
+  if (NATIVE_SNAP) sheet.addEventListener('wheel', e => {
+    if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;   // pinch-zoom / sideways
+    const notch = e.deltaMode !== 0 || Math.abs(e.deltaY) >= 40;
+    const y = sheet.scrollTop, down = e.deltaY > 0;
+    if (!notch || (down ? y >= D - 1 : y <= 0 || y > D + 1)) return;
+    e.preventDefault();
+    sheet.scrollTo({top: down ? D : 0, behavior: calm.matches ? 'instant' : 'smooth'});
+  }, {passive: false});
   function select(tab, focus, push) {
     tabs.forEach(t => {
       const on = t === tab;
@@ -530,12 +591,14 @@ details[open] summary svg{transform:rotate(180deg)}
   }, {passive: true});
   const start = document.getElementById('tab-' + location.hash.slice(1));
   if (start) select(start, false, false);
-  var ticking = false;
+  var ticking = false, lastY = 0;
   const onScroll = () => {
+    const y = sheet.scrollTop;
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    if (!('onscrollend' in window)) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 140); }
+    if (!moving && !snapping) { moving = true; idleY = lastY; }
+    if (!('onscrollend' in window)) { clearTimeout(snapTimer); snapTimer = setTimeout(snap, 90); }
   };
-  sheet.addEventListener('scroll', onScroll, {passive: true});
+  sheet.addEventListener('scroll', () => { onScroll(); lastY = sheet.scrollTop; }, {passive: true});
   sheet.addEventListener('scrollend', snap);
   measure();
   addEventListener('resize', measure);
